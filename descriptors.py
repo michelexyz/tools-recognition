@@ -54,7 +54,9 @@ def computeColor(texel: np.ndarray, code=stats_type.AVARAGE, rgb=True, hsv=True,
         # print("Nussuno spazio colore selezionato")
         raise Exception("Nussuno spazio colore selezionato")
 
-    out = np.zeros((n_spaces, 3))
+    _, _, ch = texel.shape
+    print(ch)
+    out = np.zeros((n_spaces, ch))
 
     i = 0
 
@@ -119,7 +121,9 @@ def computeStd(texel: np.ndarray, rgb=True, hsv=True, ycbcr=True):
         # print("Nussuno spazio colore selezionato")
         raise Exception("Nussuno spazio colore selezionato")
 
-    out = np.zeros((n_spaces, 3))
+    _,_,ch = texel.shape
+    print(ch)
+    out = np.zeros((n_spaces, ch))
 
     i = 0
     if rgb:
