@@ -54,7 +54,14 @@ def computeColor(texel: np.ndarray, code=stats_type.AVARAGE, rgb=True, hsv=True,
         # print("Nussuno spazio colore selezionato")
         raise Exception("Nussuno spazio colore selezionato")
 
-    out = np.zeros((n_spaces, 3))
+    if texel.ndim == 3:
+        _, _, ch = texel.shape
+    elif texel.ndim == 2:
+        ch = 1
+    else:
+        raise Exception("numero dimensioni del texel uguale a %d " % texel.ndim)
+    print(ch)
+    out = np.zeros((n_spaces, ch))
 
     i = 0
 
@@ -119,7 +126,9 @@ def computeStd(texel: np.ndarray, rgb=True, hsv=True, ycbcr=True):
         # print("Nussuno spazio colore selezionato")
         raise Exception("Nussuno spazio colore selezionato")
 
-    out = np.zeros((n_spaces, 3))
+    _,_,ch = texel.shape
+    print(ch)
+    out = np.zeros((n_spaces, ch))
 
     i = 0
     if rgb:
@@ -179,4 +188,4 @@ def dominantColors(texel: np.ndarray, n_colors=5):
 
 def std(texel: np.ndarray):
     pixels = texel.reshape(-1, 3)
-    return np.std(pixels)
+    return np.std(pixels, axis=0)
