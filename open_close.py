@@ -30,15 +30,19 @@ retval, image = cv.threshold(image, 125, 255, cv.THRESH_BINARY)
 
 cv.imshow('resized', image)
 
-out = open_close(image, 'close', 5, 1, 2)
+out = open_close(image, 'close', 7, 1, 2)
 
-#making slider
+def on_iter(iter, img):
+    # qui dovrei dire cosa fare quando si muove ipirulino della barra??
+    img = open_close(img, 'close', 7, 1, iter)
+    cv.imshow('spirulata', img)
 
-# def on_change(value):
-#     print(value)
-#
-#
-# cv.createTrackbar('slider', 'opened or closed', 0, 100, on_change)
+# making trackbar
+cv.namedWindow('spirulata')
+
+cv.createTrackbar('dilation iterations', 'spirulata', 1, 6, lambda v: on_iter(v, out))
+
+
 
 # resizing for displaying purposes
 out = resize_percentage(out, 30)
