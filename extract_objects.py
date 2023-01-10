@@ -7,6 +7,8 @@ import numpy as np
 
 import descriptors as dsc
 
+import texture_descriptors as tx
+
 
 # NormilizeIntensity imposta ad ogni pixlel un Immagine BGR "Im"
 # lo stesso valore di intensità "i_value"
@@ -129,10 +131,10 @@ cv.createTrackbar(trackbar_k, "gamma", 1, 100, lambda v: on_gamma(v, image, norm
 cv.createTrackbar("media", "gamma", 1, 100, lambda v: on_mean(v, v_mean))
 
 # Inizializza la l'intensità media obiettivo al 50%
-cv.setTrackbarPos('media', 'gamma', 50)
+cv.setTrackbarPos('media', 'gamma', 80)
 
 # Attendi la selezione della gamma da parte dell'utente per passare alla fase successiva
-cv.waitKey(0)
+#cv.waitKey(0) #TODO
 
 # Memorizza l'intensità media obiettivo fornita dall'utente
 goalPerc = cv.getTrackbarPos('media', 'gamma') / 100
@@ -213,22 +215,85 @@ cv.createTrackbar(trackbar_k, bin_window, 0, alpha_slider_max, on_trackbar)
 cv.setTrackbarPos(trackbar_k, bin_window, 6)
 
 #Una volta premuto un tasto salva l'immagine
-cv.waitKey(0)
+#cv.waitKey(0) #TODO
 k = cv.getTrackbarPos(trackbar_k, bin_window)
 
 obj_thresh = extract_objects(NormIm, k, bgRgbMean, bgRgbStd)
 cv.imwrite('no_bg_gamma.jpg', obj_thresh)
 
+connectivity = 4
+output = cv.connectedComponentsWithStats(obj_thresh, connectivity, cv.CV_32S)
+
+(numLabels, labels, stats, centroids) = output
+
+rectImage = image.copy()
+# loop over the number of unique connected component labels
+for i in range(0, numLabels):
+    # if this is the first component then we examine the
+    # *background* (typically we would just ignore this
+    # component in our loop)
+    if i == 0:
+        text = "examining component {}/{} (background)".format(i + 1, numLabels)
+        # otherwise, we are examining an actual connected component
+    else:
+        text = "examining component {}/{}".format( i + 1, numLabels)
+        # print a status message update for the current connected
+        # component
+        print("[INFO] {}".format(text))
+
+        area = stats[i, cv.CC_STAT_AREA]
+
+        if area > 200:
+            # extract the connected component statistics and centroid for
+            # the current label
+            x = stats[i, cv.CC_STAT_LEFT]
+            y = stats[i, cv.CC_STAT_TOP]
+            w = stats[i, cv.CC_STAT_WIDTH]
+            h = stats[i, cv.CC_STAT_HEIGHT]
+
+            (cX, cY) = centroids[i]
+            # clone our original image (so we can draw on it) and then draw
+            # a bounding box surrounding the connected component along with
+            # a circle corresponding to the centroid
+
+            cv.rectangle(rectImage, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            cv.circle(rectImage, (int(cX), int(cY)), 4, (0, 0, 255), -1)
+            cv.imshow('bounding box', rectImage)
+
+            #mask = np.zeros((h,w), dtype="uint8")
+            componentMaskBool = (labels[y:y + h, x:x + w] == i).astype("uint8")
+            componentMask = componentMaskBool * 255
+            masked = cv.bitwise_and(image[y:y + h, x:x + w], image[y:y + h, x:x + w],mask= componentMask)
+
+            gray = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
+            tx.compute_lbp(gray, componentMaskBool.astype("bool"))
+
+            #cv.imshow('componentMask %d'% i , componentMask)
+            #cv.imshow('masked %d' % i, masked)
+
+cv.waitKey(0)
+
+
 exit(0)
 
 # DONE trova altro modo per normalizzare luce(con gamma)
 # DONE slider con precisione floating point
+#TODO rendi tutto una funzione, in particolare ogni layer della pipeline
+
 # TODO implementa la possibbilità di aggiungere più immagini di bg
 # TODO? implementa l'informazione sugli oggetti
 # TODO rumore gaussiano
+# TODO sperimentare con altri spazi colore
+
+
 
 # TODO Funzione che divide immagine in tasselli
 # TODO Altri descrittori
+
+# TODO LBP e corner detection con istogrammi
+    # TODO Segmentazione
+# TODO shape detection con humoments
+# TODO regioni convesse e simmetriche
 
 # questo ci può servire per fare la sottrazione di due immagini più avanti nel progetto
 # alpha = val / alpha_slider_max
