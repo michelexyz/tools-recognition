@@ -10,3 +10,14 @@ def resize_percentage(img, scale_percent=100):
     out = cv.resize(img, dim)
 
     return out
+
+
+#this is for showing purposes
+def resize_and_show(window_name, img, scale_percent=60):
+
+    width = int(img.shape[1] * scale_percent / 100)
+    height = int(img.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    resized = cv.resize(img, dim)
+
+    cv.imshow(window_name, resized)
