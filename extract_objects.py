@@ -9,6 +9,8 @@ import descriptors as dsc
 
 import texture_descriptors as tx
 
+from morph_fun import open_close
+
 
 # NormilizeIntensity imposta ad ogni pixlel un Immagine BGR "Im"
 # lo stesso valore di intensità "i_value"
@@ -212,7 +214,7 @@ cv.namedWindow(bin_window)
 trackbar_k = 'K slider %d' % alpha_slider_max
 cv.createTrackbar(trackbar_k, bin_window, 0, alpha_slider_max, on_trackbar)
 # Show some stuff
-cv.setTrackbarPos(trackbar_k, bin_window, 6)
+cv.setTrackbarPos(trackbar_k, bin_window, 7)
 
 #Una volta premuto un tasto salva l'immagine
 #cv.waitKey(0) #TODO
@@ -228,6 +230,9 @@ output = cv.connectedComponentsWithStats(obj_thresh, connectivity, cv.CV_32S)
 
 rectImage = image.copy()
 # loop over the number of unique connected component labels
+# TODO erode prima di estrazione dei singoli componenti per separare le "macche"
+# TODO E fare in modo che vengano escluse nella selezione delle regioni contigue
+# TODO perche non raggiungono l'area minima
 for i in range(0, numLabels):
     # if this is the first component then we examine the
     # *background* (typically we would just ignore this
@@ -243,13 +248,16 @@ for i in range(0, numLabels):
 
         area = stats[i, cv.CC_STAT_AREA]
 
-        if area > 200:
+        if area > 350:
             # extract the connected component statistics and centroid for
             # the current label
             x = stats[i, cv.CC_STAT_LEFT]
             y = stats[i, cv.CC_STAT_TOP]
             w = stats[i, cv.CC_STAT_WIDTH]
             h = stats[i, cv.CC_STAT_HEIGHT]
+
+
+
 
             (cX, cY) = centroids[i]
             # clone our original image (so we can draw on it) and then draw
@@ -258,19 +266,30 @@ for i in range(0, numLabels):
 
             cv.rectangle(rectImage, (x, y), (x + w, y + h), (0, 255, 0), 3)
             cv.circle(rectImage, (int(cX), int(cY)), 4, (0, 0, 255), -1)
-            cv.imshow('bounding box', rectImage)
 
             #mask = np.zeros((h,w), dtype="uint8")
             componentMaskBool = (labels[y:y + h, x:x + w] == i).astype("uint8")
+
+            #TODO metterla fuori dal ciclo
+            componentMaskBool = open_close(componentMaskBool, 'open', 2, er_it=2, dil_it=2, shape=cv.MORPH_RECT)
+            componentMaskBool = open_close(componentMaskBool, 'close', 2, er_it=2, dil_it=2, shape=cv.MORPH_RECT)
+
+
+
             componentMask = componentMaskBool * 255
             masked = cv.bitwise_and(image[y:y + h, x:x + w], image[y:y + h, x:x + w],mask= componentMask)
 
+
+
             gray = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
-            tx.compute_lbp(gray, componentMaskBool.astype("bool"))
+            tx.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
-            #cv.imshow('componentMask %d'% i , componentMask)
-            #cv.imshow('masked %d' % i, masked)
+            cv.imshow('componentMask %d'% i , componentMask)
+            cv.imshow('masked %d' % i, masked)
 
+
+
+cv.imshow('bounding box', rectImage)
 cv.waitKey(0)
 
 
@@ -292,7 +311,11 @@ exit(0)
 
 # TODO LBP e corner detection con istogrammi
     # TODO Segmentazione
+    # TODO Guarda scala
+
 # TODO shape detection con humoments
+# TODO skeleton
+# TODO sottra
 # TODO regioni convesse e simmetriche
 
 # questo ci può servire per fare la sottrazione di due immagini più avanti nel progetto

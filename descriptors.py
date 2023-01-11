@@ -77,9 +77,9 @@ def computeColor(texel: np.ndarray, code=stats_type.AVARAGE, rgb=True, hsv=True,
             #stampa il colore medio
             avg_patch = np.ones(shape=texel.shape, dtype=np.uint8) * np.uint8(avg)
 
-            plt.imshow(avg_patch)
-            plt.axis('off')
-            plt.show()
+            # plt.imshow(avg_patch)
+            # plt.axis('off')
+            # plt.show()
         # TODO vedere se aggiungere spazio colore LAB(invece di hsv che è ciclico)
         if (hsv):
             hsvImage = cv.cvtColor(texel, cv.COLOR_BGR2HSV)

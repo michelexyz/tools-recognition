@@ -1,16 +1,17 @@
-import numpy as np
+
 import matplotlib.pyplot as plt
 
-
-from skimage.transform import rotate
+#from skimage.transform import rotate
 from skimage.feature import local_binary_pattern
-from skimage import data
-from skimage.color import label2rgb
+#from skimage import data
+#from skimage.color import label2rgb
 
 from skimage import feature
 import numpy as np
 
-import cv2 as cv
+#import cv2 as cv
+
+
 # settings for LBP
 # radius = 3
 # n_points = 8 * radius
@@ -67,31 +68,47 @@ import cv2 as cv
 
 
 def compute_lbp(img, mask):
-    #img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-    P = 12
-    R = 4
+    P = 18
+    R = 70
     # dim = 2**P
-    dim = P+4
-    h_bins = np.arange(dim+1)
+    dim = (2 ** P) / P
+    h_bins = np.arange(dim + 1)
     h_range = (0, dim)
     (r, c) = img.shape
 
-    codes = local_binary_pattern(img, P, R, method="uniform")
-    #masked= np.ma.masked_where(mask == True, codes)
-    #nmask = np.logical_not(np.logical_not(mask))
-    print(type(codes))
-    print(codes)
-    print(type(mask))
-    print(mask)
-    plt.imshow(codes)
-    plt.colorbar()
-    plt.xticks([]), plt.yticks([])
+    codes = local_binary_pattern(img, P, R, method="ror")
+    # masked= np.ma.masked_where(mask == True, codes)
+    # nmask = np.logical_not(np.logical_not(mask))
+    # print(type(codes))
+    # print(codes)
+    # print(type(mask))
+    # print(mask)
+    # plt.imshow(codes)
+    # plt.colorbar()
+    # plt.xticks([]), plt.yticks([])
+    # plt.show()
+
+    f, [ax0, ax1] = plt.subplots(1, 2)
+
+    im_codes = ax0.imshow(codes)
+    ax0.axis('off')
+    ax0.set_title('LBP of image')
+    plt.colorbar(im_codes, ax=ax0)
+
+    x = np.ma.array(codes, mask=np.logical_not(mask))
+    x.filled(fill_value=0)
+    im_masked = ax1.imshow(x)
+    ax1.axis('off')
+    ax1.set_title('LBP of ROI')
+    plt.colorbar(im_masked, ax=ax1)
     plt.show()
+
     h_img, _ = np.histogram(codes.ravel(), bins=h_bins, range=h_range)
     h_masked, _ = np.histogram(codes[mask], bins=h_bins, range=h_range)
-    h_img = h_img/h_img.sum(dtype=np.float)
-    h_masked = h_masked/h_masked.sum(dtype=np.float)
+    h_img = h_img / h_img.sum(dtype=np.float)
+    h_masked = h_masked / h_masked.sum(dtype=np.float)
 
     f, [[ax0, ax1], [ax2, ax3]] = plt.subplots(2, 2)
     ax0.imshow(img, cmap=plt.cm.gray)
@@ -107,22 +124,72 @@ def compute_lbp(img, mask):
     plt.show()
 
 
+#TODO implementa in extract_objects al posto dell'attuale compute_lbp()
 class LocalBinaryPatterns:
-	def __init__(self, numPoints, radius):
-		# store the number of points and radius
-		self.numPoints = numPoints
-		self.radius = radius
-	def describe(self, image, eps=1e-7):
-		# compute the Local Binary Pattern representation
-		# of the image, and then use the LBP representation
-		# to build the histogram of patterns
-		lbp = feature.local_binary_pattern(image, self.numPoints,
-			self.radius, method="uniform")
-		(hist, _) = np.histogram(lbp.ravel(),
-			bins=np.arange(0, self.numPoints + 3),
-			range=(0, self.numPoints + 2))
-		# normalize the histogram
-		hist = hist.astype("float")
-		hist /= (hist.sum() + eps)
-		# return the histogram of Local Binary Patterns
-		return hist
+    def __init__(self, num_points, radius):
+        # store the number of points and radius
+        self.numPoints = num_points
+        self.radius = radius
+        self.dim = 2 ** num_points / num_points
+
+
+    #TODO aggiungere parametro show = True per decidere se i grafici vengano mostrati o meno
+    def describe(self, image, mask, method="ror", eps=1e-7):
+        # compute the Local Binary Pattern representation
+        # of the image, and then use the LBP representation
+        # to build the histogram of patterns
+        lbp = feature.local_binary_pattern(image, self.numPoints,
+                                           self.radius, method=method)
+
+        # MOSTRA LBP DELL'IMMAGINE E DELLA MASCHERA
+
+        f, [ax0, ax1] = plt.subplots(1, 2)
+        im_codes = ax0.imshow(lbp)
+        ax0.axis('off')
+        ax0.set_title('LBP of image')
+        plt.colorbar(im_codes, ax=ax0)
+
+        x = np.ma.array(lbp, mask=np.logical_not(mask))
+        x.filled(fill_value=0)
+        im_masked = ax1.imshow(x)
+        ax1.axis('off')
+        ax1.set_title('LBP of ROI')
+        plt.colorbar(im_masked, ax=ax1)
+        plt.show()
+
+        # CALCOLA ISTOGRAMMA DELL' LBP DELL' IMMAGINE E DELLA MASCHERA
+
+        # (hist, _) = np.histogram(lbp.ravel(),
+        #                          bins=np.arange(0, self.dim +1),
+        #                          range=(0, self.dim))
+
+        bins = np.arange(0, self.dim + 1),
+        range = (0, self.dim)
+
+        h_img, _ = np.histogram(lbp.ravel(), bins=bins, range=range)
+        h_masked, _ = np.histogram(lbp[mask], bins=bins, range=range)
+        h_img = h_img / (h_img.sum(dtype=np.float) + eps)
+        h_masked = h_masked / (h_masked.sum(dtype=np.float) + eps)
+
+        # # normalize the histogram
+        # hist = hist.astype("float")
+        # hist /= (hist.sum() + eps)
+
+
+        # MOSTRA ISTOGRAMMI DI image E mask CON RELATIVE IMMAGINI
+
+        f, [[ax0, ax1], [ax2, ax3]] = plt.subplots(2, 2)
+        ax0.imshow(image, cmap=plt.cm.gray)
+        ax0.axis('off')
+        ax0.set_title('Image')
+        ax1.imshow(mask, cmap=plt.cm.gray)
+        ax1.axis('off')
+        ax1.set_title('Mask')
+        ax2.plot(h_img)
+        ax2.set_title('LBP of image')
+        ax3.plot(h_masked)
+        ax3.set_title('LBP of ROI')
+        plt.show()
+
+        # return the histogram of Local Binary Patterns
+        return h_masked

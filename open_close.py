@@ -4,20 +4,21 @@ from useful import *
 
 # receiving input a binary image, sending output a better binary image
 
+from morph_fun import open_close
 
-
-def open_close(img, type, dim, er_it=1, dil_it=1):
-    kernel = cv.getStructuringElement(cv.MORPH_RECT,(dim,dim))
-    if type == 'close':
-        # closing = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) # dilation -> erosion
-        dilated = cv.dilate(img, kernel, iterations=dil_it)
-        closing = cv.erode(dilated, kernel, iterations=er_it)
-        return closing
-    else:
-        # opening = cv.morphologyEx(img, cv.MORPH_OPEN, kernel) # erosion -> dilation
-        eroded = cv.erode(img, kernel, iterations=er_it)
-        opening = cv.dilate(eroded, kernel, iterations=dil_it)
-        return opening
+# Importata da file morph_fun.py
+# def open_close(img, type, dim, er_it=1, dil_it=1, shape = cv.MORPH_RECT):
+#     kernel = cv.getStructuringElement(shape,(dim,dim))
+#     if type == 'close':
+#         # closing = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) # dilation -> erosion
+#         dilated = cv.dilate(img, kernel, iterations=dil_it)
+#         closing = cv.erode(dilated, kernel, iterations=er_it)
+#         return closing
+#     else:
+#         # opening = cv.morphologyEx(img, cv.MORPH_OPEN, kernel) # erosion -> dilation
+#         eroded = cv.erode(img, kernel, iterations=er_it)
+#         opening = cv.dilate(eroded, kernel, iterations=dil_it)
+#         return opening
 
 
 # image = cv.imread('C:/Users/glauc/OneDrive/Desktop/UNI/elaborazione immagini digitali/progetto/images/no_bg.jpg')
