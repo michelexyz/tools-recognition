@@ -291,14 +291,14 @@ for i in range(0, numLabels):
 
             gray = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
 
-            mult = area / 40000
+            #mult = area / 40000
 
-            mult = 0.7  # TODO tune
+            mult = 0.2 # TODO tune
 
             r = math.sqrt(area / math.pi) * mult
             print("Radius: {}".format(r))
 
-            lbpDescriptor = LocalBinaryPatterns(18, r)
+            lbpDescriptor = LocalBinaryPatterns(18, r , method = "uniform")
 
             lbp = lbpDescriptor.describe(componentMask, componentMaskBool.astype("bool"))
             # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
@@ -330,8 +330,10 @@ exit(0)
 
 # TODO shape detection con humoments
 # TODO skeleton
-# TODO sottra
+# TODO sottrai
 # TODO regioni convesse e simmetriche
+
+# TODO Classificazione
 
 # questo ci può servire per fare la sottrazione di due immagini più avanti nel progetto
 # alpha = val / alpha_slider_max

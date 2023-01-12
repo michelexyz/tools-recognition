@@ -126,20 +126,26 @@ def compute_lbp(img, mask):
 
 #TODO implementa in extract_objects al posto dell'attuale compute_lbp()
 class LocalBinaryPatterns:
-    def __init__(self, num_points, radius):
+    def __init__(self, num_points, radius, method="ror"):
         # store the number of points and radius
         self.numPoints = num_points
         self.radius = radius
-        self.dim = 2 ** num_points / num_points
+        self.method = method
+        if method == "ror":
+            self.dim = 2 ** num_points / num_points
+        elif method == "uniform":
+            self.dim = num_points +2
+        else:
+            raise Exception("Invalid 'method' in LocalBinaryPatters constructor")
 
 
     #TODO aggiungere parametro show = True per decidere se i grafici vengano mostrati o meno
-    def describe(self, image, mask, method="ror", eps=1e-7):
+    def describe(self, image, mask, eps=1e-7):
         # compute the Local Binary Pattern representation
         # of the image, and then use the LBP representation
         # to build the histogram of patterns
         lbp = feature.local_binary_pattern(image, self.numPoints,
-                                           self.radius, method=method)
+                                           self.radius, method=self.method)
 
         # MOSTRA LBP DELL'IMMAGINE E DELLA MASCHERA
 
