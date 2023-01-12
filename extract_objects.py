@@ -214,7 +214,7 @@ cv.namedWindow(bin_window)
 trackbar_k = 'K slider %d' % alpha_slider_max
 cv.createTrackbar(trackbar_k, bin_window, 0, alpha_slider_max, on_trackbar)
 # Show some stuff
-cv.setTrackbarPos(trackbar_k, bin_window, 7)
+cv.setTrackbarPos(trackbar_k, bin_window, 6)
 
 #Una volta premuto un tasto salva l'immagine
 #cv.waitKey(0) #TODO
@@ -223,12 +223,17 @@ k = cv.getTrackbarPos(trackbar_k, bin_window)
 obj_thresh = extract_objects(NormIm, k, bgRgbMean, bgRgbStd)
 cv.imwrite('no_bg_gamma.jpg', obj_thresh)
 
+kShape = cv.MORPH_CROSS
+erosionIt = 20 # TODO tune
+# La dimensione del kernel deve essere = 3 per il funzionamento del programma(vedi dentro if area..)
+obj_thresh = open_close(obj_thresh, 'open', 3, er_it=erosionIt, dil_it=0, shape=kShape)
+
 connectivity = 4
 output = cv.connectedComponentsWithStats(obj_thresh, connectivity, cv.CV_32S)
-
 (numLabels, labels, stats, centroids) = output
 
 rectImage = image.copy()
+r,c, _ = image.shape
 # loop over the number of unique connected component labels
 # TODO erode prima di estrazione dei singoli componenti per separare le "macche"
 # TODO E fare in modo che vengano escluse nella selezione delle regioni contigue
@@ -248,7 +253,7 @@ for i in range(0, numLabels):
 
         area = stats[i, cv.CC_STAT_AREA]
 
-        if area > 350:
+        if area > 100:
             # extract the connected component statistics and centroid for
             # the current label
             x = stats[i, cv.CC_STAT_LEFT]
@@ -256,6 +261,16 @@ for i in range(0, numLabels):
             w = stats[i, cv.CC_STAT_WIDTH]
             h = stats[i, cv.CC_STAT_HEIGHT]
 
+
+            #TODO è giusto?
+            if (x - erosionIt) >= 0:
+                x = x - erosionIt
+            if (y - erosionIt) >= 0:
+                y = y - erosionIt
+            if (x+w + erosionIt*2)<= c:
+                w = w + erosionIt*2
+            if (y+h + erosionIt*2)<= r:
+                h = h + erosionIt*2
 
 
 
@@ -270,13 +285,15 @@ for i in range(0, numLabels):
             #mask = np.zeros((h,w), dtype="uint8")
             componentMaskBool = (labels[y:y + h, x:x + w] == i).astype("uint8")
 
+            cv.imshow('test',componentMaskBool)
             #TODO metterla fuori dal ciclo
-            componentMaskBool = open_close(componentMaskBool, 'open', 2, er_it=2, dil_it=2, shape=cv.MORPH_RECT)
-            componentMaskBool = open_close(componentMaskBool, 'close', 2, er_it=2, dil_it=2, shape=cv.MORPH_RECT)
+            componentMaskBool = open_close(componentMaskBool, 'open', 3, er_it=0, dil_it=erosionIt, shape=kShape)
+            componentMaskBool = open_close(componentMaskBool, 'close', 3, er_it=erosionIt, dil_it=erosionIt, shape=kShape)
 
 
 
             componentMask = componentMaskBool * 255
+
             masked = cv.bitwise_and(image[y:y + h, x:x + w], image[y:y + h, x:x + w],mask= componentMask)
 
 
