@@ -163,7 +163,7 @@ class LocalBinaryPatterns:
         #                          bins=np.arange(0, self.dim +1),
         #                          range=(0, self.dim))
 
-        bins = np.arange(0, self.dim + 1),
+        bins = np.arange(0, self.dim + 1)
         range = (0, self.dim)
 
         h_img, _ = np.histogram(lbp.ravel(), bins=bins, range=range)

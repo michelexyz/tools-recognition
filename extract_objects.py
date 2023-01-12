@@ -9,6 +9,8 @@ import descriptors as dsc
 
 import texture_descriptors as tx
 
+from texture_descriptors import LocalBinaryPatterns
+
 from morph_fun import open_close
 
 
@@ -56,7 +58,7 @@ def gammaCorrection(src, gamma):
     return res
 
 
-#Trova la gamma data un'intesità media obbiettivo
+# Trova la gamma data un'intesità media obbiettivo
 def optimalGamma(goal_perc, mean):
     if goal_perc <= 0 or goal_perc >= 1:
         raise Exception("goal_mean fuori dal range (0,1) valore %d" % goal_perc)
@@ -67,23 +69,21 @@ def optimalGamma(goal_perc, mean):
     return gamma
 
 
-#Applica l'operazione di gamma sul canale di insità per eliminare le ombre
+# Applica l'operazione di gamma sul canale di insità per eliminare le ombre
 def gammaIntensity(im, gamma):
-    #cv.imshow("vediamo se copy to funziona ori", im)
+    # cv.imshow("vediamo se copy to funziona ori", im)
     hsv_image = cv.cvtColor(im, cv.COLOR_BGR2HSV)
     HIm, SIm, VIm = cv.split(hsv_image)
 
     VGamma = gammaCorrection(VIm, gamma)
     hsv_image = cv.merge([HIm, SIm, VGamma])
-    #cv.imshow("vediamo se copy to funziona gam", cv.cvtColor(hsv_image, cv.COLOR_HSV2BGR))
-    #np.copyto(dst=im, src=cv.cvtColor(hsv_image, cv.COLOR_HSV2BGR))
+    # cv.imshow("vediamo se copy to funziona gam", cv.cvtColor(hsv_image, cv.COLOR_HSV2BGR))
+    # np.copyto(dst=im, src=cv.cvtColor(hsv_image, cv.COLOR_HSV2BGR))
     return cv.cvtColor(hsv_image, cv.COLOR_HSV2BGR)
 
 
-
 def on_gamma(g, im, normIm):
-
-    #cv.imshow("vediamo se on gamma to funziona ori", NormIm)
+    # cv.imshow("vediamo se on gamma to funziona ori", NormIm)
     np.copyto(normIm, gammaIntensity(im, g / 10))
 
     cv.imshow("gamma", normIm)
@@ -129,14 +129,14 @@ NormIm = np.copy(image)
 cv.namedWindow("gamma")
 trackbar_k = 'gamma'
 # imposta le trackbar per la gamma e l'intensità media obbiettivo
-cv.createTrackbar(trackbar_k, "gamma", 1, 100, lambda v: on_gamma(v, image, normIm= NormIm))
+cv.createTrackbar(trackbar_k, "gamma", 1, 100, lambda v: on_gamma(v, image, normIm=NormIm))
 cv.createTrackbar("media", "gamma", 1, 100, lambda v: on_mean(v, v_mean))
 
 # Inizializza la l'intensità media obiettivo al 50%
 cv.setTrackbarPos('media', 'gamma', 80)
 
 # Attendi la selezione della gamma da parte dell'utente per passare alla fase successiva
-#cv.waitKey(0) #TODO
+# cv.waitKey(0) #TODO
 
 # Memorizza l'intensità media obiettivo fornita dall'utente
 goalPerc = cv.getTrackbarPos('media', 'gamma') / 100
@@ -150,18 +150,15 @@ hsv = cv.cvtColor(bg, cv.COLOR_BGR2HSV)
 _, _, V = cv.split(hsv)
 bgVMean = np.mean(V)
 
-
 # Normalizza l'mmagine di bg con la media obiettivo fornita dall'utente
 op = optimalGamma(goal_perc=goalPerc, mean=bgVMean)
 print("GAMMA OTTIMALE %f" % op)
-
 
 NormBg = gammaIntensity(bg, op)
 cv.imshow("normilized bg", NormBg)
 
 # Mostra anche l'immagine da analizzare normalizzata
 cv.imshow("normilize image", NormIm)
-
 
 # calcola i valori BGR medi dell'immagine di bg
 bgRgbMean = dsc.computeColor(NormBg)[0]
@@ -180,9 +177,7 @@ print(std)
 print(bgRgbStd)
 
 
-
-
-#Binarizza l'immagine data la media dei valori e la deviazione std di un'immagine di bg
+# Binarizza l'immagine data la media dei valori e la deviazione std di un'immagine di bg
 def extract_objects(im, k, channel_mean: np.ndarray, std: np.ndarray):
     if channel_mean.shape != std.shape:
         raise Exception("dimensione dell'array della media di canali diversa da quello della std")
@@ -193,7 +188,7 @@ def extract_objects(im, k, channel_mean: np.ndarray, std: np.ndarray):
     return obj_threshold
 
 
-#Al movimento dello slider estrai gli oggeti con un nuovo k (val)
+# Al movimento dello slider estrai gli oggeti con un nuovo k (val)
 def on_trackbar(val):
     # k = val
     # # TODO trasforma in una funzione il codice sotto
@@ -207,7 +202,7 @@ def on_trackbar(val):
     cv.imshow(bin_window, obj_thresh)
 
 
-#Crea una finestra dove viene mostrata la binarizazzione dell'immagine dato il k selezionato con lo slider
+# Crea una finestra dove viene mostrata la binarizazzione dell'immagine dato il k selezionato con lo slider
 alpha_slider_max = 10
 bin_window = 'Immagine con slider'
 cv.namedWindow(bin_window)
@@ -216,15 +211,15 @@ cv.createTrackbar(trackbar_k, bin_window, 0, alpha_slider_max, on_trackbar)
 # Show some stuff
 cv.setTrackbarPos(trackbar_k, bin_window, 6)
 
-#Una volta premuto un tasto salva l'immagine
-#cv.waitKey(0) #TODO
+# Una volta premuto un tasto salva l'immagine
+# cv.waitKey(0) #TODO
 k = cv.getTrackbarPos(trackbar_k, bin_window)
 
 obj_thresh = extract_objects(NormIm, k, bgRgbMean, bgRgbStd)
 cv.imwrite('no_bg_gamma.jpg', obj_thresh)
 
 kShape = cv.MORPH_CROSS
-erosionIt = 20 # TODO tune
+erosionIt = 1  # TODO tune
 # La dimensione del kernel deve essere = 3 per il funzionamento del programma(vedi dentro if area..)
 obj_thresh = open_close(obj_thresh, 'open', 3, er_it=erosionIt, dil_it=0, shape=kShape)
 
@@ -233,7 +228,7 @@ output = cv.connectedComponentsWithStats(obj_thresh, connectivity, cv.CV_32S)
 (numLabels, labels, stats, centroids) = output
 
 rectImage = image.copy()
-r,c, _ = image.shape
+r, c, _ = image.shape
 # loop over the number of unique connected component labels
 # TODO erode prima di estrazione dei singoli componenti per separare le "macche"
 # TODO E fare in modo che vengano escluse nella selezione delle regioni contigue
@@ -246,14 +241,16 @@ for i in range(0, numLabels):
         text = "examining component {}/{} (background)".format(i + 1, numLabels)
         # otherwise, we are examining an actual connected component
     else:
-        text = "examining component {}/{}".format( i + 1, numLabels)
-        # print a status message update for the current connected
-        # component
-        print("[INFO] {}".format(text))
 
         area = stats[i, cv.CC_STAT_AREA]
 
-        if area > 100:
+        if area > 350:
+            text = "examining component {}/{}".format(i + 1, numLabels)
+            # print a status message update for the current connected
+            # component
+            print("[INFO] {}".format(text))
+
+            print("Area: {}".format(area))
             # extract the connected component statistics and centroid for
             # the current label
             x = stats[i, cv.CC_STAT_LEFT]
@@ -261,18 +258,15 @@ for i in range(0, numLabels):
             w = stats[i, cv.CC_STAT_WIDTH]
             h = stats[i, cv.CC_STAT_HEIGHT]
 
-
-            #TODO è giusto?
+            # TODO è giusto?
             if (x - erosionIt) >= 0:
                 x = x - erosionIt
             if (y - erosionIt) >= 0:
                 y = y - erosionIt
-            if (x+w + erosionIt*2)<= c:
-                w = w + erosionIt*2
-            if (y+h + erosionIt*2)<= r:
-                h = h + erosionIt*2
-
-
+            if (x + w + erosionIt * 2) <= c:
+                w = w + erosionIt * 2
+            if (y + h + erosionIt * 2) <= r:
+                h = h + erosionIt * 2
 
             (cX, cY) = centroids[i]
             # clone our original image (so we can draw on it) and then draw
@@ -282,39 +276,44 @@ for i in range(0, numLabels):
             cv.rectangle(rectImage, (x, y), (x + w, y + h), (0, 255, 0), 3)
             cv.circle(rectImage, (int(cX), int(cY)), 4, (0, 0, 255), -1)
 
-            #mask = np.zeros((h,w), dtype="uint8")
+            # mask = np.zeros((h,w), dtype="uint8")
             componentMaskBool = (labels[y:y + h, x:x + w] == i).astype("uint8")
 
-            cv.imshow('test',componentMaskBool)
-            #TODO metterla fuori dal ciclo
+            cv.imshow('test', componentMaskBool)
+            # TODO metterla fuori dal ciclo
             componentMaskBool = open_close(componentMaskBool, 'open', 3, er_it=0, dil_it=erosionIt, shape=kShape)
-            componentMaskBool = open_close(componentMaskBool, 'close', 3, er_it=erosionIt, dil_it=erosionIt, shape=kShape)
-
-
+            componentMaskBool = open_close(componentMaskBool, 'close', 3, er_it=erosionIt, dil_it=erosionIt,
+                                           shape=kShape)
 
             componentMask = componentMaskBool * 255
 
-            masked = cv.bitwise_and(image[y:y + h, x:x + w], image[y:y + h, x:x + w],mask= componentMask)
-
-
+            masked = cv.bitwise_and(image[y:y + h, x:x + w], image[y:y + h, x:x + w], mask=componentMask)
 
             gray = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
-            tx.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
-            cv.imshow('componentMask %d'% i , componentMask)
+            mult = area / 40000
+
+            mult = 0.7  # TODO tune
+
+            r = math.sqrt(area / math.pi) * mult
+            print("Radius: {}".format(r))
+
+            lbpDescriptor = LocalBinaryPatterns(18, r)
+
+            lbp = lbpDescriptor.describe(componentMask, componentMaskBool.astype("bool"))
+            # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
+
+            cv.imshow('componentMask %d' % i, componentMask)
             cv.imshow('masked %d' % i, masked)
-
-
 
 cv.imshow('bounding box', rectImage)
 cv.waitKey(0)
-
 
 exit(0)
 
 # DONE trova altro modo per normalizzare luce(con gamma)
 # DONE slider con precisione floating point
-#TODO rendi tutto una funzione, in particolare ogni layer della pipeline
+# TODO rendi tutto una funzione, in particolare ogni layer della pipeline
 
 # TODO implementa la possibbilità di aggiungere più immagini di bg
 # TODO? implementa l'informazione sugli oggetti
@@ -322,13 +321,12 @@ exit(0)
 # TODO sperimentare con altri spazi colore
 
 
-
 # TODO Funzione che divide immagine in tasselli
 # TODO Altri descrittori
 
 # TODO LBP e corner detection con istogrammi
-    # TODO Segmentazione
-    # TODO Guarda scala
+# TODO Segmentazione
+# TODO Guarda scala
 
 # TODO shape detection con humoments
 # TODO skeleton
