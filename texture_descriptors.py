@@ -1,15 +1,15 @@
-
 import matplotlib.pyplot as plt
 
-#from skimage.transform import rotate
+# from skimage.transform import rotate
 from skimage.feature import local_binary_pattern
-#from skimage import data
-#from skimage.color import label2rgb
+# from skimage import data
+# from skimage.color import label2rgb
 
 from skimage import feature
 import numpy as np
 
-#import cv2 as cv
+
+# import cv2 as cv
 
 
 # settings for LBP
@@ -124,22 +124,24 @@ def compute_lbp(img, mask):
     plt.show()
 
 
-#TODO implementa in extract_objects al posto dell'attuale compute_lbp()
+# TODO implementa in extract_objects al posto dell'attuale compute_lbp()
 class LocalBinaryPatterns:
-    def __init__(self, num_points, radius, method="ror"):
+    def __init__(self, num_points=18, radius=100, method="ror"):
         # store the number of points and radius
         self.numPoints = num_points
         self.radius = radius
         self.method = method
+        self.dim = self.compute_dim(self.numPoints, self.method)
+
+    def compute_dim(self, num_points, method):
         if method == "ror":
-            self.dim = 2 ** num_points / num_points
+            return 2 ** num_points / num_points
         elif method == "uniform":
-            self.dim = num_points +2
+            return num_points + 2
         else:
-            raise Exception("Invalid 'method' in LocalBinaryPatters constructor")
+            raise Exception("Invalid 'method' in LocalBinaryPatters")
 
-
-    #TODO aggiungere parametro show = True per decidere se i grafici vengano mostrati o meno
+    # TODO aggiungere parametro show = True per decidere se i grafici vengano mostrati o meno
     def describe(self, image, mask, eps=1e-7):
         # compute the Local Binary Pattern representation
         # of the image, and then use the LBP representation
@@ -156,7 +158,7 @@ class LocalBinaryPatterns:
         plt.colorbar(im_codes, ax=ax0)
 
         x = np.ma.array(lbp, mask=np.logical_not(mask))
-        x.filled(fill_value=0)
+        # x.filled(fill_value=0)
         im_masked = ax1.imshow(x)
         ax1.axis('off')
         ax1.set_title('LBP of ROI')
@@ -180,7 +182,6 @@ class LocalBinaryPatterns:
         # # normalize the histogram
         # hist = hist.astype("float")
         # hist /= (hist.sum() + eps)
-
 
         # MOSTRA ISTOGRAMMI DI image E mask CON RELATIVE IMMAGINI
 
