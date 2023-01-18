@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 
 from morph_fun import open_close
-from texture_descriptors import LocalBinaryPatterns
+from texture_descriptors import LocalBinaryPatterns, find_r_mode
+from texture_descriptors import parametric_lbp
 
 
 def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"):
@@ -43,6 +44,8 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
     X = np.empty((l, dim))
     Y = np.empty(l)
     names = np.empty(l, dtype=object)
+    category_legend = []
+
     category_index = 0
     element_index = 0
     debug = os.listdir(dataset_path)
@@ -54,6 +57,7 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
         #processedCategoryPath = Path(processedCategoryPathStr)
         #processedCategoryPath.mkdir(parents=True, exist_ok=True)
         if category != '.DS_Store':
+            category_legend.append(category)
             for file in categoryPath.glob('*.png'):
                 input_path = str(file)
 
@@ -65,10 +69,13 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
 
                 print('Original Dimensions : ', input.shape)
 
+
+                width = 500
+                height = int(width * (input.shape[0]/input.shape[1]))
                 #TODO scala a larghezza fissa
                 scale_percent = 50  # percent of original size
-                width = int(input.shape[1] * scale_percent / 100)
-                height = int(input.shape[0] * scale_percent / 100)
+                #width = int(input.shape[1] * scale_percent / 100)
+                #height = int(input.shape[0] * scale_percent / 100)
                 dim = (width, height)
 
                 # resize image
@@ -90,13 +97,14 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 binarized = binarized_bool.astype("uint8") * 255
                 binarized_bool = binarized_bool.astype("bool")
 
-                mult = 0.2  # TODO tune
 
-                r = math.sqrt(area / math.pi) * mult
-                print("Radius: {}".format(r))
 
-                lbpDescriptor = LocalBinaryPatterns(P, r, method=method)
 
+
+
+                lbpDescriptor = parametric_lbp(18, method="ror",width = 500, r_mode=find_r_mode.WIDTH)
+
+                print("Radius: {}".format(lbpDescriptor.radius))
                 lbp = lbpDescriptor.describe(binarized, binarized_bool)
                 # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
@@ -109,10 +117,11 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
                 element_index+=1
             category_index += 1
-    data = np.empty(3, dtype=object)
+    data = np.empty(4, dtype=object)
     data[0] = X
     data[1] = Y
     data[2] = names
+    data[3] = np.array([category_legend])
     # save to csv file
     np.save('data.npy', data)
 

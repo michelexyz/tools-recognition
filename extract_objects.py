@@ -13,6 +13,10 @@ from texture_descriptors import LocalBinaryPatterns
 
 from morph_fun import open_close
 
+from models import Models
+
+import pandas as pd
+from IPython.display import display
 
 # NormilizeIntensity imposta ad ogni pixlel un Immagine BGR "Im"
 # lo stesso valore di intensità "i_value"
@@ -219,7 +223,7 @@ obj_thresh = extract_objects(NormIm, k, bgRgbMean, bgRgbStd)
 cv.imwrite('no_bg_gamma.jpg', obj_thresh)
 
 kShape = cv.MORPH_CROSS
-erosionIt = 1  # TODO tune
+erosionIt = 2  # TODO tune
 # La dimensione del kernel deve essere = 3 per il funzionamento del programma(vedi dentro if area..)
 obj_thresh = open_close(obj_thresh, 'open', 3, er_it=erosionIt, dil_it=0, shape=kShape)
 
@@ -227,8 +231,21 @@ connectivity = 4
 output = cv.connectedComponentsWithStats(obj_thresh, connectivity, cv.CV_32S)
 (numLabels, labels, stats, centroids) = output
 
+
+
+# clone our original image (so we can draw on it) and then draw
+# a bounding box surrounding the connected component along with
+# a circle corresponding to the centroid
 rectImage = image.copy()
 r, c, _ = image.shape
+
+#CARICA IL MODELLO
+data = np.load('cl1.npy', allow_pickle=True)
+
+m = data[0]
+
+
+
 # loop over the number of unique connected component labels
 # TODO erode prima di estrazione dei singoli componenti per separare le "macche"
 # TODO E fare in modo che vengano escluse nella selezione delle regioni contigue
@@ -269,12 +286,9 @@ for i in range(0, numLabels):
                 h = h + erosionIt * 2
 
             (cX, cY) = centroids[i]
-            # clone our original image (so we can draw on it) and then draw
-            # a bounding box surrounding the connected component along with
-            # a circle corresponding to the centroid
 
-            cv.rectangle(rectImage, (x, y), (x + w, y + h), (0, 255, 0), 3)
-            cv.circle(rectImage, (int(cX), int(cY)), 4, (0, 0, 255), -1)
+
+
 
             # mask = np.zeros((h,w), dtype="uint8")
             componentMaskBool = (labels[y:y + h, x:x + w] == i).astype("uint8")
@@ -302,6 +316,19 @@ for i in range(0, numLabels):
 
             lbp = lbpDescriptor.describe(componentMask, componentMaskBool.astype("bool"))
             # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
+
+            #Eseguo la predizione
+            prediction = m.predict_with_best_n([lbp], 5)
+            display(prediction)
+            category = prediction['Prediction'].iat[0]
+
+
+            #Disegno la bounding box e il centroide
+            cv.rectangle(rectImage, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            cv.circle(rectImage, (int(cX), int(cY)), 4, (0, 0, 255), -1)
+            cv.putText(rectImage, category, (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+
+
 
             cv.imshow('componentMask %d' % i, componentMask)
             cv.imshow('masked %d' % i, masked)

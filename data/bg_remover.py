@@ -49,5 +49,5 @@ for category in os.listdir(rawFolderStr):
         cv.imwrite(output_path, cropped_image)
         print('generata ' + imgName)
 
-
+exit(0)
 

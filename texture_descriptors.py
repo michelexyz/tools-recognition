@@ -1,3 +1,6 @@
+import math
+from enum import Enum
+
 import matplotlib.pyplot as plt
 
 # from skimage.transform import rotate
@@ -67,6 +70,8 @@ import numpy as np
 #     ax.axis('off')
 
 
+
+
 def compute_lbp(img, mask):
     # img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
@@ -123,6 +128,11 @@ def compute_lbp(img, mask):
     ax3.set_title('LBP of ROI')
     plt.show()
 
+UNIFORM_MULT = 0.2
+UNIFORM_D = 5
+
+ROR_MULT = 0.7
+ROR_D = 4
 
 # TODO implementa in extract_objects al posto dell'attuale compute_lbp()
 class LocalBinaryPatterns:
@@ -200,3 +210,26 @@ class LocalBinaryPatterns:
 
         # return the histogram of Local Binary Patterns
         return h_masked
+
+class find_r_mode(Enum):
+    AREA = "ar"
+    WIDTH = "wi"
+
+def parametric_lbp(num_points=18, method="ror",width = 500, area = 250000, r_mode=find_r_mode.WIDTH):
+    global UNIFORM_MULT
+    global UNIFORM_D
+    global ROR_MULT
+    global ROR_D
+
+    if method == "ror":
+        radius = find_r(width=width, area=area, mode = r_mode, mult=ROR_MULT, d= ROR_D)
+        return LocalBinaryPatterns(num_points=num_points,radius=radius, method=method)
+    elif method == "uniform":
+        radius = find_r(width=width, area=area, mode=r_mode, mult=UNIFORM_MULT, d=UNIFORM_D)
+        return LocalBinaryPatterns(num_points=num_points, radius=radius, method=method)
+
+def find_r(width = 500, area = 250000, mode=find_r_mode.WIDTH, mult = 0.2, d = 5):#TODO tune mult and d
+    if find_r_mode.AREA in mode:
+        return math.sqrt(area / math.pi) * mult
+    if find_r_mode.WIDTH in mode:
+        return width/d
