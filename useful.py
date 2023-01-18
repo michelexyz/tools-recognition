@@ -21,3 +21,11 @@ def resize_and_show(window_name, img, scale_percent=60):
     resized = cv.resize(img, dim)
 
     cv.imshow(window_name, resized)
+
+
+# this function extract a sub image (ROI) given the coordinates
+# of top left corner point and sides dimensions
+def extract_roi(img, point, x_dim, y_dim):
+    x, y = point
+    roi = img[y:y+y_dim, x:x+x_dim]
+    return roi
