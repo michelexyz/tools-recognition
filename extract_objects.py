@@ -386,6 +386,7 @@ exit(0)
 # DONE trova altro modo per normalizzare luce(con gamma)
 # DONE slider con precisione floating point
 # TODO 0 rendi tutto una funzione, in particolare ogni layer della pipeline
+# TODO 0 funzione per capire quile file sono previsti in modo sbagliato nel test
 
 # TODO implementa la possibbilità di aggiungere più immagini di bg
 # TODO? implementa l'informazione sugli oggetti
