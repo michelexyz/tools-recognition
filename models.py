@@ -30,7 +30,7 @@ class Models:
         self.classifiers = [
             KNeighborsClassifier(3),
             SVC(kernel="rbf", C=0.025, probability=True),
-            NuSVC(probability=True),
+            NuSVC(nu=0.2,probability=True),
             DecisionTreeClassifier(),
             RandomForestClassifier(),
             AdaBoostClassifier(),
@@ -44,7 +44,7 @@ class Models:
         #self.le
 
 
-    def train_and_test(self, n_splits=5, test_size=0.2, random_state=23):
+    def train_and_test(self, n_splits=3, test_size=0.2, random_state=23):
         # Logging for Visual Comparison
         log_cols=["Fold","Classifier", "Accuracy", "Log Loss"]
         index = 0
@@ -86,8 +86,8 @@ class Models:
 
         display(log)
         mean = log.groupby('Classifier')[['Accuracy', "Log Loss"]].mean()
-        self.mean = mean.sort_values(by=['Accuracy'])
-        display(mean)
+        self.mean = mean.sort_values(by=['Accuracy'], ascending=False)
+        display(self.mean)
 
     def train(self):
         for clf in self.classifiers:
@@ -108,7 +108,7 @@ class Models:
             print(name + ' trained with subset')
             print("=" * 30)
 
-    def predict_with_fold(self, x, fold, n_splits = 5,test_size=0.2, random_state = 23, use_best = True, n_best = 5):
+    def predict_with_fold(self, x, fold, n_splits = 3,test_size=0.2, random_state = 23, use_best = True, n_best = 5):
 
         sss = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
 
@@ -181,12 +181,74 @@ class Models:
     #
     #     self.__dict__ = pickle.load(dataPickle)
     # TODO fun for wrong predictions file names
+    def predict_with_prob(self, x):
+        n = 3
+        best = self.predict_with_best_n(x,n)
+        print("="*30)
+        print("Best classifiers:")
+        display(best)
+        print("="*30)
+        best_cl = np.array(best["Classifier"].tolist())
+        best_pred = np.array(best["Prediction"].tolist())
 
+        classifiers = np.array(self.mean.head(n).index.tolist())
+        accuracy = np.array(self.mean.head(n)['Accuracy'].tolist())
+
+        total_accuracy = accuracy.sum()
+        accuracy_w = accuracy/total_accuracy
+
+        probabilistc_prediction = []
+        for p, cl_name in enumerate(best_cl):
+            cl_index = None
+            for i, cl in enumerate(classifiers):
+                if cl_name == cl:
+                    cl_index = i
+
+                    break
+            if cl_index == None:
+                raise Exception("Classifier not found in dataframe")
+            prediction = best_pred[p]
+            weight = accuracy_w[cl_index]
+            pred_already_present = False
+            for pred in probabilistc_prediction:
+                if prediction == pred[0]:
+                    pred[1] += weight
+                    pred_already_present = True
+                    break
+            if not pred_already_present:
+                probabilistc_prediction.append([prediction,weight])
+
+
+        best_pred_name = 'None'
+        best_pred_w = 0
+
+        if len(probabilistc_prediction)>0:
+            for pred in probabilistc_prediction:
+                debug = pred
+                if best_pred_w < pred[1]:
+                    best_pred_w = pred[1]
+                    debug = pred[0]
+                    best_pred_name = pred[0]
+        else:
+            raise Exception("Probabilistic prediction array is empty")
+        if best_pred_name != 'None':
+            return [best_pred_name, best_pred_w]
+        else:
+            raise Exception("Best prediction not found ")
+
+
+    def _predict_with_name(self, x, cl_name: str):
+        id = self.get_ids_by_names([cl_name])
+        return self.predict(x, id, cl_name)
+
+
+
+        #TODO 0
     def get_ids_by_names(self, names):
         ids =[]
         for i, clf in enumerate(self.classifiers):
             for name in names:
-                if name in clf.__class__.__name__:
+                if name == clf.__class__.__name__.split('(', 1)[0]:
                     ids.append(i)
         return ids
 

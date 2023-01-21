@@ -34,20 +34,22 @@ for category in os.listdir(rawFolderStr):
     processedCategoryPath = Path(processedCategoryPathStr)
     processedCategoryPath.mkdir(parents=True,exist_ok=True)
     for file in categoryPath.glob('*'):
-        input_path = str(file)
+        fileName = file.stem
+        if file.stem != '.DS_Store':
+            input_path = str(file)
 
-        imgName = (file.stem + ".out.png")
-        output_path = str(processedFolderStr + '/' + category + '/' + imgName)
+            imgName = (fileName + ".out.png")
+            output_path = str(processedFolderStr + '/' + category + '/' + imgName)
 
-        input = cv.imread(input_path)
-        noBgImg = remove(input, session=session)
+            input = cv.imread(input_path)
+            noBgImg = remove(input, session=session)
 
-        #Contours,imgContours = cv.findContours(noBgImg,None , None)
-        [X, Y, W, H] = cv.boundingRect(cv.cvtColor(noBgImg, cv.COLOR_BGR2GRAY))
-        cropped_image = noBgImg[Y:Y + H, X:X + W]
+            #Contours,imgContours = cv.findContours(noBgImg,None , None)
+            [X, Y, W, H] = cv.boundingRect(cv.cvtColor(noBgImg, cv.COLOR_BGR2GRAY))
+            cropped_image = noBgImg[Y:Y + H, X:X + W]
 
-        cv.imwrite(output_path, cropped_image)
-        print('generata ' + imgName)
+            cv.imwrite(output_path, cropped_image)
+            print('generata ' + imgName)
 
-exit(0)
+sys.exit()
 

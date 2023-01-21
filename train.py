@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from models import Models
 
@@ -28,3 +30,4 @@ def prepare_models(descriptors_file='data.npy', model_file='cl1.npy'):
 
 
 prepare_models()
+sys.exit()

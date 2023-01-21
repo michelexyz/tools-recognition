@@ -8,6 +8,9 @@ import numpy as np
 import descriptors as dsc
 
 import texture_descriptors as tx
+from texture_descriptors import parametric_lbp
+from texture_descriptors import parametric_lbp
+from texture_descriptors import find_r_mode
 
 from texture_descriptors import LocalBinaryPatterns
 
@@ -17,6 +20,12 @@ from models import Models
 
 import pandas as pd
 from IPython.display import display
+
+from useful import remove_imperfections
+
+from parameters import *
+
+
 
 # NormilizeIntensity imposta ad ogni pixlel un Immagine BGR "Im"
 # lo stesso valore di intensità "i_value"
@@ -267,7 +276,7 @@ for i in range(0, numLabels):
             # component
             print("[INFO] {}".format(text))
 
-            print("Area: {}".format(area))
+
             # extract the connected component statistics and centroid for
             # the current label
             x = stats[i, cv.CC_STAT_LEFT]
@@ -293,40 +302,76 @@ for i in range(0, numLabels):
             # mask = np.zeros((h,w), dtype="uint8")
             componentMaskBool = (labels[y:y + h, x:x + w] == i).astype("uint8")
 
-            cv.imshow('test', componentMaskBool)
-            # TODO metterla fuori dal ciclo
+
             componentMaskBool = open_close(componentMaskBool, 'open', 3, er_it=0, dil_it=erosionIt, shape=kShape)
-            componentMaskBool = open_close(componentMaskBool, 'close', 3, er_it=erosionIt, dil_it=erosionIt,
-                                           shape=kShape)
+
+
+
+            componentMaskBool = remove_imperfections(componentMaskBool)
+
+            # componentMaskBool = open_close(componentMaskBool, 'close', 3, er_it=erosionIt, dil_it=erosionIt,
+            #                                shape=kShape)
+
+            width = 500
+            height = int(width * (h / w))
+            # TODO scala a larghezza fissa
+            # scale_percent = 50  # percent of original size
+            # width = int(input.shape[1] * scale_percent / 100)
+            # height = int(input.shape[0] * scale_percent / 100)
+            dim = (width, height)
+
+            # resize image
+            componentMaskBool = cv.resize(componentMaskBool, dim, interpolation=cv.INTER_NEAREST).astype("uint8")
+            resizedImage = cv.resize(image[y:y + h, x:x + w], dim, interpolation=cv.INTER_NEAREST)
+
+            area = np.count_nonzero(componentMaskBool)
+
+            print("Area: {}".format(area))
+
+            cv.imshow('test', componentMaskBool)
+
+
+            # TODO metterla fuori dal ciclo
+
 
             componentMask = componentMaskBool * 255
 
-            masked = cv.bitwise_and(image[y:y + h, x:x + w], image[y:y + h, x:x + w], mask=componentMask)
+            masked = cv.bitwise_and(resizedImage, resizedImage, mask=componentMask)
 
             gray = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
 
             #mult = area / 40000
 
-            mult = 0.2 # TODO tune
+            # mult = 0.2 # TODO tune
+            #
+            # r = math.sqrt(area / math.pi) * mult
 
-            r = math.sqrt(area / math.pi) * mult
-            print("Radius: {}".format(r))
 
-            lbpDescriptor = LocalBinaryPatterns(18, r , method = "uniform")
+            lbpDescriptor = parametric_lbp(P, method=method, width = w, area=area)
+
+
+
+            # resize image
+            #input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
             lbp = lbpDescriptor.describe(componentMask, componentMaskBool.astype("bool"))
             # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
             #Eseguo la predizione
-            prediction = m.predict_with_best_n([lbp], 5)
+            prediction = m.predict_with_best_n([lbp], 10)
+            print("=" * 30)
+            print(f" Predictions obj {i}:")
             display(prediction)
-            category = prediction['Prediction'].iat[0]
+            #category = prediction['Prediction'].iat[1]
 
+            probabilistc_prediction = m.predict_with_prob([lbp])
+            category = probabilistc_prediction[0]
+            prob = probabilistc_prediction[1]
 
             #Disegno la bounding box e il centroide
             cv.rectangle(rectImage, (x, y), (x + w, y + h), (0, 255, 0), 3)
             cv.circle(rectImage, (int(cX), int(cY)), 4, (0, 0, 255), -1)
-            cv.putText(rectImage, category, (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+            cv.putText(rectImage, f'obj {i}: {category}, prob: {prob}', (x, y - 10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
 
 
@@ -340,7 +385,7 @@ exit(0)
 
 # DONE trova altro modo per normalizzare luce(con gamma)
 # DONE slider con precisione floating point
-# TODO rendi tutto una funzione, in particolare ogni layer della pipeline
+# TODO 0 rendi tutto una funzione, in particolare ogni layer della pipeline
 
 # TODO implementa la possibbilità di aggiungere più immagini di bg
 # TODO? implementa l'informazione sugli oggetti
@@ -361,6 +406,13 @@ exit(0)
 # TODO regioni convesse e simmetriche
 
 # TODO Classificazione
+
+# TODO pulisci dati
+# DONE prendi 5 migliori previsioni con pesi
+# TODO min rect e Moemnti
+
+
+
 
 # questo ci può servire per fare la sottrazione di due immagini più avanti nel progetto
 # alpha = val / alpha_slider_max

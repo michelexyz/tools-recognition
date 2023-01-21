@@ -1,7 +1,7 @@
 import math
 import sys
 from pathlib import Path
-from rembg import remove, new_session
+#from rembg import remove, new_session
 import os, shutil
 import cv2 as cv
 import numpy as np
@@ -10,10 +10,12 @@ import pandas as pd
 from morph_fun import open_close
 from texture_descriptors import LocalBinaryPatterns, find_r_mode
 from texture_descriptors import parametric_lbp
+from useful import remove_imperfections, remove_small_objects
+from parameters import *
 
 
 def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"):
-    session = new_session()
+    #session = new_session()
     #
     # rawFolderStr = '/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/raw'
     # rawFolder = Path(rawFolderStr)
@@ -34,8 +36,7 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
     print('1')
     print('2')
     print('3')
-    method = "uniform"
-    P = 18
+
 
     all = Path(dataset_path).glob('**/*.png')
     l = len(list(all))
@@ -87,9 +88,12 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 #cv.imshow('RED {}, {}'.format(i, category), R)
 
 
+                #Immagine binarizzata
                 binarized_bool = (A > 0).astype("uint8")
-                binarized_bool = open_close(binarized_bool, 'close', 3, er_it=5, dil_it=5,
-                                               shape=cv.MORPH_RECT)
+
+                #Rimuovi le imperfezioni (open e close) e estrai solo la regione connessa più grande
+                binarized_bool = remove_imperfections(binarized_bool)
+                binarized_bool = remove_small_objects(binarized_bool)
 
                 area = np.count_nonzero(binarized_bool)
                 print("Area: {}".format(area))
@@ -98,11 +102,7 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 binarized_bool = binarized_bool.astype("bool")
 
 
-
-
-
-
-                lbpDescriptor = parametric_lbp(18, method="ror",width = 500, r_mode=find_r_mode.WIDTH)
+                lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
 
                 print("Radius: {}".format(lbpDescriptor.radius))
                 lbp = lbpDescriptor.describe(binarized, binarized_bool)
