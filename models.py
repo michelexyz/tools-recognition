@@ -36,8 +36,8 @@ class Models:
             AdaBoostClassifier(),
             GradientBoostingClassifier(),
             GaussianNB(),
-            LinearDiscriminantAnalysis(),
-            QuadraticDiscriminantAnalysis()]
+            LinearDiscriminantAnalysis()
+        ]
 
         #self.best_classifier = None
         #self.mean = None
@@ -108,7 +108,7 @@ class Models:
             print(name + ' trained with subset')
             print("=" * 30)
 
-    def predict_with_fold(self, x, fold, n_splits = 3,test_size=0.2, random_state = 23, use_best = True, n_best = 5):
+    def train_with_fold(self, fold, n_splits = 3,test_size=0.2, random_state = 23, use_best = True, n_best = 5):
 
         sss = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
 
@@ -121,11 +121,11 @@ class Models:
 
                 self.train_with_subset(train_index)
 
-                if use_best:
-                    return self.predict_with_best_n( x, n_best)
-                else:
-                    return self.predict(X_train, range(len(self.classifiers)))
-                print("=" * 30)
+                # if use_best:
+                #     return self.predict_with_best_n( x, n_best)
+                # else:
+                #     return self.predict(X_train, range(len(self.classifiers)))
+                # print("=" * 30)
 
     def predict(self,c_indices, X):
         l =  len(X)

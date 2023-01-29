@@ -102,3 +102,24 @@ def find_n_iterations(area, factor = 100):
     print(f'Numero di iterazioni per oggetto di area {area} e fattore {factor}: {n_iterations}')
     return int(n_iterations)
 
+
+#Data la lunghezza della diagonale scelta ridimensiona l'immagine
+#Mantenendo le proporzioni
+def resize_to_fixed_d(im, d):
+    ratio = (im.shape[0] / im.shape[1])
+    # h = d * math.sqrt(ratio)
+    # w = d / math.sqrt(ratio)
+    #
+    # dim = (int(w), int(h))
+    #
+    # # resize image
+    # return cv.resize(im, dim,  interpolation=cv.INTER_AREA)
+
+    fraction = d**2/(ratio**2 + 1)
+    w = math.sqrt(fraction)
+    h = w * ratio
+
+    dim = (int(w), int(h))
+
+    # resize image
+    return cv.resize(im, dim,  interpolation=cv.INTER_AREA)

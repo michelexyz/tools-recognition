@@ -10,7 +10,7 @@ import pandas as pd
 from morph_fun import open_close
 from texture_descriptors import LocalBinaryPatterns, find_r_mode
 from texture_descriptors import parametric_lbp
-from useful import remove_imperfections, remove_small_objects
+from useful import remove_imperfections, remove_small_objects, resize_to_fixed_d
 from parameters import *
 
 
@@ -46,6 +46,7 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
     Y = np.empty(l)
     names = np.empty(l, dtype=object)
     category_legend = []
+    images = np.empty(l, dtype=object)
 
     category_index = 0
     element_index = 0
@@ -82,6 +83,9 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 # resize image
                 input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
+                # input_min = resize_to_fixed_d(input, 64)
+                # _, _, _, Amin = cv.split(input_min)
+
                 print('Resized Dimensions : ', input.shape)
 
                 B, G, R, A = cv.split(input)
@@ -114,14 +118,21 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 Y[element_index] = category_index
                 names[element_index] = file.stem
 
+                binarized_min = resize_to_fixed_d(binarized, 64)
+
+                images[element_index] = binarized_min
+
+
+
                 cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
                 element_index+=1
             category_index += 1
-    data = np.empty(4, dtype=object)
+    data = np.empty(5, dtype=object)
     data[0] = X
     data[1] = Y
     data[2] = names
     data[3] = np.array([category_legend])
+    data[4] = images
     # save to csv file
     np.save('data.npy', data)
 
@@ -140,7 +151,7 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
 prepare_data()
 cv.waitKey(0)
 
-exit(0)
+sys.exit()
 #TODO numero iterazioni open e close proporzionale alla definizione dell'immagine
 #TODO resize per normalizzare?
 # In caso farlo nello script bg_remover

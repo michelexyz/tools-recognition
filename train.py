@@ -16,7 +16,12 @@ def prepare_models(descriptors_file='data.npy', model_file='cl1.npy'):
 
     m = Models(X, Y, file_names, category_legend)
     m.train_and_test()
-    m.train()
+    #m.train()
+    m.train_with_fold(fold=1)
+
+    #Svuota la memoria del classificatore
+    m.X = None
+    m.labels = None
 
     # trained = np.array([m],dtype= object)
 
@@ -24,7 +29,7 @@ def prepare_models(descriptors_file='data.npy', model_file='cl1.npy'):
 
     trained[0] = m
 
-    np.save(model_file, trained, )
+    np.save(model_file, trained )
     print("BELLLLAAAAAAAAA")
 
 

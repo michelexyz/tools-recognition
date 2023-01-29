@@ -147,11 +147,41 @@ class LocalBinaryPatterns:
 
     def compute_dim(self, num_points, method):
         if method == "ror":
-            return int(2 ** num_points / num_points)
+            return int((2 ** num_points) / num_points)
         elif method == "uniform":
             return num_points + 2
         else:
             raise Exception("Invalid 'method' in LocalBinaryPatters")
+
+    #TODO LUT
+    def ror_dim(self, num_points):
+        total_combinations = 2 ** num_points
+        half_num = int(num_points/2)
+        repeating_patterns_addends = []
+        repeating_patterns_sizes = []
+        repeating_patterns_sizes.append(half_num)
+
+        for i in np.flip(np.arange(1, half_num)):
+
+            for s in repeating_patterns_sizes:
+                if s % i > 0:
+                    repeating_patterns_sizes.append(i)
+
+        for r in repeating_patterns_sizes:  # TODO optimize
+            addend = (2 ** r) * r
+            repeating_patterns_addends.append(addend)
+        repeating_patterns_num = np.sum(repeating_patterns_addends)
+
+        distinct_patterns_num = ((total_combinations - repeating_patterns_num)/num_points) + repeating_patterns_num
+
+        return distinct_patterns_num
+
+
+
+
+
+
+
 
     # TODO aggiungere parametro show = True per decidere se i grafici vengano mostrati o meno
     def describe(self, image, mask, eps=1e-7):
