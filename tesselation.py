@@ -3,7 +3,7 @@ from useful import *
 
 
 # divide the input image in sub-regions
-def tassellamela(img, step, dim):
+def tassellamela(img, step, dim, descriptor_funct=None):
 
     num = 0
     width = img.shape[1]
@@ -27,13 +27,17 @@ def tassellamela(img, step, dim):
             point = (j, i)
             roi = extract_roi(img, point, dim, dim)
 
-            # todo: applico il descrittore al tassello (ROI)
-            # roi = descriptor_x(roi)
+            # applico il descrittore al tassello (ROI)
+            # but only if the function is not None
+            if descriptor_funct is not None:
+                descripted_roi = descriptor_funct(roi, num)
+            else:
+                descripted_roi = roi
 
-            # put the computed (descripted) roi in descriptors array
-            descriptors[a][b] = roi
+            # put the computed (descripted) roi in descriptors matrix
+            descriptors[a][b] = descripted_roi
 
-            resize_and_show('roi numero ' + str(num), roi, 190)
+            # resize_and_show('roi numero ' + str(num), roi, 190)
             print('tassello numero ' + str(num))
 
             num += 1
@@ -41,16 +45,29 @@ def tassellamela(img, step, dim):
 
         b = 0
         a += 1
+    return descriptors
 
 
-immagine = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/tools.jpg')
-dim = (400, 400)
-resized = cv.resize(immagine, dim, interpolation=cv.INTER_AREA)
-resize_and_show('roi', resized)
+# example function, writes a number on an image
+def numera(img, numero):
+    font = cv.FONT_HERSHEY_SIMPLEX
+    org = (img.shape[0]//2,img.shape[1]//2)
+    new_img = cv.putText(img, str(numero), org, font, 1, (255,0,0), 1, cv.LINE_AA)
+    return new_img
 
-step = 70
-size = 100
-tassellamela(resized, step, size)
-
-cv.waitKey(0)
-cv.destroyAllWindows()
+# immagine = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/tools.jpg')
+# dim = (400, 400)
+# resized = cv.resize(immagine, dim, interpolation=cv.INTER_AREA)
+# resize_and_show('roi', resized)
+#
+# step = 40
+# size = 50
+#
+# # function to be passed in 'tassellamela'
+# # this funct, will be applied to all rois
+# funct = numera
+#
+# tassellamela(resized, step, size, funct)
+#
+# cv.waitKey(0)
+# cv.destroyAllWindows()
