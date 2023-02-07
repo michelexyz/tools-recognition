@@ -11,7 +11,8 @@ from skimage.feature import local_binary_pattern
 from skimage import feature
 import numpy as np
 
-
+from descriptors import DescriptorInterface
+from parameters import *
 # import cv2 as cv
 
 
@@ -128,11 +129,6 @@ def compute_lbp(img, mask):
     ax3.set_title('LBP of ROI')
     plt.show()
 
-UNIFORM_MULT = 0.2
-UNIFORM_D = 5
-
-ROR_MULT = 0.7
-ROR_D = 4
 
 
 
@@ -145,9 +141,10 @@ class LocalBinaryPatterns:
         self.method = method
         self.dim = self.compute_dim(self.numPoints, self.method)
 
-    def compute_dim(self, num_points, method):
+    def compute_dim(self, num_points, method): #TODO togli parametri gia presenti nell'oggetto
         if method == "ror":
-            return int((2 ** num_points) / num_points)
+            #return self.ror_dim(num_points)
+            return 2 ** num_points
         elif method == "uniform":
             return num_points + 2
         else:
@@ -155,11 +152,14 @@ class LocalBinaryPatterns:
 
     #TODO LUT
     def ror_dim(self, num_points):
+
+
         total_combinations = 2 ** num_points
         half_num = int(num_points/2)
         repeating_patterns_addends = []
         repeating_patterns_sizes = []
         repeating_patterns_sizes.append(half_num)
+
 
         for i in np.flip(np.arange(1, half_num)):
 
@@ -172,7 +172,9 @@ class LocalBinaryPatterns:
             repeating_patterns_addends.append(addend)
         repeating_patterns_num = np.sum(repeating_patterns_addends)
 
-        distinct_patterns_num = ((total_combinations - repeating_patterns_num)/num_points) + repeating_patterns_num
+        distinct_patterns_num = int((total_combinations - repeating_patterns_num)/num_points) + repeating_patterns_num
+
+        print(f"distinct patterns: {distinct_patterns_num}")
 
         return distinct_patterns_num
 
@@ -258,13 +260,43 @@ def parametric_lbp(num_points=18, method="ror",width = 500, area = 250000):#TODO
 
     if method == "ror":
         radius = find_r(width=width, area=area, mode = r_mode, mult=ROR_MULT, d= ROR_D)
-        return LocalBinaryPatterns(num_points=num_points, radius=radius, method=method)
+
     elif method == "uniform":
         radius = find_r(width=width, area=area, mode=r_mode, mult=UNIFORM_MULT, d=UNIFORM_D)
-        return LocalBinaryPatterns(num_points=num_points, radius=radius, method=method)
+
+    print("Radius: {}".format(radius))
+
+    return LocalBinaryPatterns(num_points=num_points, radius=radius, method=method)
+
+
+#Funzione passabile come parametro "descrittore" a detect_objects() e prepare_data()
+
+def lbp_fun(componentMask, componentMaskBool, area):
+    lbpDescriptor = parametric_lbp(P, method=method, area=area)
+    lbp = lbpDescriptor.describe(componentMask, componentMaskBool)
+    return lbp
+
+class CallableLbp(DescriptorInterface):
+    """Extract text from an email."""
+    def __init__(self, P, method):
+        self.P = P
+        self.method = method
+
+    def describe(self, componentMask, componentMaskBool, area) -> str:
+        """Overrides DescriptorInterface.describe()"""
+
+        lbpDescriptor = parametric_lbp(P, method=self.method, area=area)
+        lbp = lbpDescriptor.describe(componentMask, componentMaskBool)
+        return lbp
+
+    def get_dim(self) -> dict:
+        """Overrides DescriptorInterface.get_dim()"""
+
+        return LocalBinaryPatterns().compute_dim(self.P, self.method)
 
 def find_r(width = 500, area = 250000, mode=find_r_mode.WIDTH, mult = 0.2, d = 5):#TODO tune mult and d
     if find_r_mode.AREA == mode:
         return math.sqrt(area / math.pi) * mult
     if find_r_mode.WIDTH == mode:
         return width/d
+

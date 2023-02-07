@@ -12,7 +12,7 @@ from PIL import Image
 PATCH_SIZE = 45
 
 # image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/non_omogeneus_backgrounds/blue_square/IMG20230120125942.jpg')
-image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/tools.jpg')
+image = cv.imread('/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/tools.jpg')
 
 gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 

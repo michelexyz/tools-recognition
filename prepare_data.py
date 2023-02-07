@@ -1,20 +1,18 @@
-import math
 import sys
 from pathlib import Path
 #from rembg import remove, new_session
-import os, shutil
-import cv2 as cv
+import os
 import numpy as np
-import pandas as pd
 
-from morph_fun import open_close
-from texture_descriptors import LocalBinaryPatterns, find_r_mode
-from texture_descriptors import parametric_lbp
+from descriptors import DescriptorInterface
+from descriptors.shape_descriptors import hu_fun, CallableHu
+from descriptors.texture_descriptors import CallableLbp
+from train import prepare_models
 from useful import remove_imperfections, remove_small_objects, resize_to_fixed_d
 from parameters import *
 
 
-def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"):
+def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"):
     #session = new_session()
     #
     # rawFolderStr = '/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/raw'
@@ -40,7 +38,8 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
 
     all = Path(dataset_path).glob('**/*.png')
     l = len(list(all))
-    dim = LocalBinaryPatterns().compute_dim(P, method)
+    #dim = LocalBinaryPatterns().compute_dim(P, method)
+    dim = descriptor.get_dim()#TODO
 
     X = np.empty((l, dim))
     Y = np.empty(l)
@@ -106,15 +105,17 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 binarized_bool = binarized_bool.astype("bool")
 
 
-                lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
-
-                print("Radius: {}".format(lbpDescriptor.radius))
-                lbp = lbpDescriptor.describe(binarized, binarized_bool)
+                # lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
+                #
+                #
+                # desc = lbpDescriptor.describe(binarized, binarized_bool)
                 # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
+
+                desc = descriptor.describe(binarized, binarized_bool, area)
 
                 #print("ciao")
 
-                X[element_index] = lbp
+                X[element_index] = desc.reshape(-1)
                 Y[element_index] = category_index
                 names[element_index] = file.stem
 
@@ -148,7 +149,12 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
             # print('generata ' + imgName)
 
 
-prepare_data()
+hu = CallableHu(draw=True)
+lbp = CallableLbp(P = P, method=method)
+prepare_data(hu)
+
+prepare_models()
+
 cv.waitKey(0)
 
 sys.exit()

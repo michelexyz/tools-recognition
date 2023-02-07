@@ -33,6 +33,7 @@ def prepare_models(descriptors_file='data.npy', model_file='cl1.npy'):
     print("BELLLLAAAAAAAAA")
 
 
-
-prepare_models()
-sys.exit()
+if __name__ == '__main__':
+    print("esecuzione di train.py")
+    prepare_models()
+    sys.exit()

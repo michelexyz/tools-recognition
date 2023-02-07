@@ -132,9 +132,9 @@ def segment_and_detect(image, obj_thresh, m, descriptor, apply_on_mask = True, s
 
 
                 if apply_on_mask:
-                    description = descriptor(componentMask, componentMaskBool.astype("bool"), area)
+                    description = descriptor.describe(componentMask, componentMaskBool.astype("bool"), area).reshape(-1)
                 else:
-                    description = descriptor(masked, componentMaskBool.astype("bool"), area)
+                    description = descriptor.describe(masked, componentMaskBool.astype("bool"), area).reshape(-1)
 
                 # Eseguo la predizione
                 prediction = m.predict_with_best_n([description], len(m.classifiers))

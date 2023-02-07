@@ -6,6 +6,38 @@ import numpy as np
 from morph_fun import open_close
 
 
+
+# NormilizeIntensity imposta ad ogni pixlel un Immagine BGR "Im"
+# lo stesso valore di intensità "i_value"
+# potrebbe essere anche direttamente creata una funzione "normalizeChannel"
+# o ancora apply function to channel
+# TODO METTI in file UTIL
+
+def normilezeIntesity(im, i_value):
+    hsvImage = cv.cvtColor(im, cv.COLOR_BGR2HSV)
+    HIm, SIm, VIm = cv.split(hsvImage)
+    c, r, _ = im.shape
+
+    VNormalized = np.full((c, r), i_value, np.uint8)
+    hsvImage = cv.merge([HIm, SIm, VNormalized])
+    NormImg = cv.cvtColor(hsvImage, cv.COLOR_HSV2BGR)
+    return NormImg
+
+
+#Questa funzione invece equalizza l'istogramma dell'intensità
+def equalizeIntensity(im):
+    hsvImage = cv.cvtColor(im, cv.COLOR_BGR2HSV)
+    HIm, SIm, VIm = cv.split(hsvImage)
+    c, r, _ = im.shape
+
+    # VEqualized = cv.equalizeHist(VIm)
+    clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    VEqualized = clahe.apply(VIm)
+    hsvImage = cv.merge([HIm, SIm, VEqualized])
+    EqImg = cv.cvtColor(hsvImage, cv.COLOR_HSV2BGR)
+    return EqImg
+
+
 def resize_percentage(img, scale_percent=100):
 
     width = int(img.shape[1] * scale_percent / 100)
@@ -123,3 +155,5 @@ def resize_to_fixed_d(im, d):
 
     # resize image
     return cv.resize(im, dim,  interpolation=cv.INTER_AREA)
+
+

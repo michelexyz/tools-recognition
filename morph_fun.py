@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-#FUNZIONI MORFOLOGICHE
+#FUNZIONI MORFOLOGICHE #TODO rimetti nel file originale da modificare con if (__name__ == '__main__'):
 
 def open_close(img, type, dim = 1, er_it=1, dil_it=1, shape = cv.MORPH_RECT):
     kernel = cv.getStructuringElement(shape,(int(dim),int(dim)))

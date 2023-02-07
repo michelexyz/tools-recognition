@@ -1,68 +1,22 @@
-import math
-
-import cv2 as cv
-import os
 from matplotlib import pyplot as plt
-import numpy as np
 
-import descriptors as dsc
+from descriptors import color_descriptors as dsc
 
-import texture_descriptors as tx
 from extract_objects import extract_with_trackbar
 from segmentation import segment_and_detect
-from texture_descriptors import parametric_lbp
-from texture_descriptors import parametric_lbp
-from texture_descriptors import find_r_mode
-
-from texture_descriptors import LocalBinaryPatterns
+from descriptors.shape_descriptors import hu_fun
 
 from gamma import normalize_with_trackbar, optimal_gamma_on_intensity
-from morph_fun import open_close
-
-from models import Models
-
-import pandas as pd
-from IPython.display import display
-
-from useful import remove_imperfections
 
 from parameters import *
 
 
 
-# NormilizeIntensity imposta ad ogni pixlel un Immagine BGR "Im"
-# lo stesso valore di intensità "i_value"
-# potrebbe essere anche direttamente creata una funzione "normalizeChannel"
-# o ancora apply function to channel
-# TODO METTI in file UTIL
-
-def normilezeIntesity(im, i_value):
-    hsvImage = cv.cvtColor(im, cv.COLOR_BGR2HSV)
-    HIm, SIm, VIm = cv.split(hsvImage)
-    c, r, _ = im.shape
-
-    VNormalized = np.full((c, r), i_value, np.uint8)
-    hsvImage = cv.merge([HIm, SIm, VNormalized])
-    NormImg = cv.cvtColor(hsvImage, cv.COLOR_HSV2BGR)
-    return NormImg
-
-
-#Questa funzione invece equalizza l'istogramma dell'intensità
-def equalizeIntensity(im):
-    hsvImage = cv.cvtColor(im, cv.COLOR_BGR2HSV)
-    HIm, SIm, VIm = cv.split(hsvImage)
-    c, r, _ = im.shape
-
-    # VEqualized = cv.equalizeHist(VIm)
-    clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    VEqualized = clahe.apply(VIm)
-    hsvImage = cv.merge([HIm, SIm, VEqualized])
-    EqImg = cv.cvtColor(hsvImage, cv.COLOR_HSV2BGR)
-    return EqImg
 
 
 
-def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
+
+def detect_objects(image, bg, descriptor, obj_classifier=None, bgClassifier=None ):
 
 
     # Mostra immagine con oggetti multipli
@@ -77,7 +31,7 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
     #E memorizza l'intensità media risultante in mean_perc
     norm_im, mean_perc = normalize_with_trackbar(image)
 
-    #
+    #analogamente applica una gamma all'immagine di sfondo per raggiungere la stessa intensità media
     NormBg = optimal_gamma_on_intensity(bg, goal_perc=mean_perc)
     cv.imshow("normilized bg", NormBg)
 
@@ -95,20 +49,13 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
     print(std)
     print(bgRgbStd)
 
+    #Binarizza l'immagine dato il colore medio del background e la sua deviazione standard
     obj_thresh = extract_with_trackbar(norm_im, bgRgbMean, bgRgbStd)
 
-    # CARICA IL MODELLO
-    data = np.load('cl1.npy', allow_pickle=True)
 
-    m = data[0]
-
-    def lbp_fun(componentMask, componentMaskBool, area):
-        lbpDescriptor = parametric_lbp(P, method=method, area=area)
-        lbp = lbpDescriptor.describe(componentMask, componentMaskBool)
-        return lbp
-
-
-    rectImage,(_,labels,_,_,_) = segment_and_detect(image, obj_thresh,m,lbp_fun)
+    #salva l'immagine con le bounding box della predizione in rectImage
+    #salva l'immagine segmentata in labels
+    rectImage,(_,labels,_,_,_) = segment_and_detect(image, obj_thresh, obj_classifier,descriptor)
 
     plt.imshow(labels)
     plt.colorbar()
@@ -121,13 +68,7 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
     return rectImage
 
 
-# Leggi immagine con oggetti multipli
-image = cv.imread(os.path.expanduser("~/PycharmProjects/ToolsRecognition/data/tools.jpg"))
 
-# Leggi immagine del relativo background
-bg = cv.imread(os.path.expanduser("~/PycharmProjects/ToolsRecognition/data/green.jpg"))
-
-detect_objects(image,bg)
 
 # DONE trova altro modo per normalizzare luce(con gamma)
 # DONE slider con precisione floating point

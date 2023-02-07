@@ -1,26 +1,17 @@
 import math
 
-import cv2 as cv
 import os
 from matplotlib import pyplot as plt
 import numpy as np
 
-import descriptors as dsc
+from descriptors import color_descriptors as dsc
 
-import texture_descriptors as tx
 from extract_objects import extract_with_trackbar
-from texture_descriptors import parametric_lbp
-from texture_descriptors import parametric_lbp
-from texture_descriptors import find_r_mode
-
-from texture_descriptors import LocalBinaryPatterns
+from descriptors.texture_descriptors import parametric_lbp
 
 from gamma import normalize_with_trackbar, optimal_gamma_on_intensity
 from morph_fun import open_close
 
-from models import Models
-
-import pandas as pd
 from IPython.display import display
 
 from useful import remove_imperfections
