@@ -8,11 +8,11 @@ from descriptors import DescriptorInterface
 from descriptors.shape_descriptors import hu_fun, CallableHu
 from descriptors.texture_descriptors import CallableLbp
 from train import prepare_models
-from useful import remove_imperfections, remove_small_objects, resize_to_fixed_d
+from useful import remove_imperfections, remove_small_objects, resize_to_fixed_d, remove_imperfections_adv
 from parameters import *
 
 
-def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"):
+def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed", output_file='data.npy', draw= True):
     #session = new_session()
     #
     # rawFolderStr = '/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/raw'
@@ -68,24 +68,27 @@ def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/micheleva
                 #Carica l'immagine nei 4 canali
                 input = cv.imread(input_path, cv.IMREAD_UNCHANGED)
 
+                print(f'Analisi immagine: {file.stem}')
+
                 print('Original Dimensions : ', input.shape)
 
 
-                width = 500
-                height = int(width * (input.shape[0]/input.shape[1]))
-                #TODO scala a larghezza fissa
-                scale_percent = 50  # percent of original size
-                #width = int(input.shape[1] * scale_percent / 100)
-                #height = int(input.shape[0] * scale_percent / 100)
-                dim = (width, height)
+                # width = 500
+                # height = int(width * (input.shape[0]/input.shape[1]))
+                # #TODO scala a larghezza fissa
+                # scale_percent = 50  # percent of original size
+                # #width = int(input.shape[1] * scale_percent / 100)
+                # #height = int(input.shape[0] * scale_percent / 100)
+                # dim = (width, height)
+                #
+                # # resize image
+                # input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
-                # resize image
-                input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
                 # input_min = resize_to_fixed_d(input, 64)
                 # _, _, _, Amin = cv.split(input_min)
 
-                print('Resized Dimensions : ', input.shape)
+
 
                 B, G, R, A = cv.split(input)
                 #cv.imshow('RED {}, {}'.format(i, category), R)
@@ -94,9 +97,35 @@ def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/micheleva
                 #Immagine binarizzata
                 binarized_bool = (A > 0).astype("uint8")
 
+                is_searched_file = file.stem == 'IMG_6821.out'
                 #Rimuovi le imperfezioni (open e close) e estrai solo la regione connessa più grande
-                binarized_bool = remove_imperfections(binarized_bool)
-                binarized_bool = remove_small_objects(binarized_bool)
+
+
+                if is_searched_file:
+                    cv.imshow(f'original mask {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+                # remove small objects per escludere gi eventuali oggetti separati
+                # e prima della resize per pulire l'immagine con più precisione
+
+                # binarized_bool = remove_small_objects(binarized_bool)
+                #
+                # if is_searched_file:
+                #     cv.imshow(f'mask without small obj {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+                binarized_bool = remove_imperfections_adv(binarized_bool)
+                if is_searched_file:
+                    cv.imshow(f'mask without imperfections {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+
+
+
+                binarized_bool = resize_to_fixed_d(binarized_bool, d)
+
+                if is_searched_file:
+                    cv.imshow(f'mask resized {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+
+                print('Resized bool Dimensions : ', binarized_bool.shape)
 
                 area = np.count_nonzero(binarized_bool)
                 print("Area: {}".format(area))
@@ -111,7 +140,7 @@ def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/micheleva
                 # desc = lbpDescriptor.describe(binarized, binarized_bool)
                 # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
-                desc = descriptor.describe(binarized, binarized_bool, area)
+                desc = descriptor.describe(binarized, binarized_bool, area, file.stem)
 
                 #print("ciao")
 
@@ -125,8 +154,8 @@ def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/micheleva
 
 
 
-                cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
-                element_index+=1
+                #cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
+                element_index   +=1
             category_index += 1
     data = np.empty(5, dtype=object)
     data[0] = X
@@ -134,8 +163,8 @@ def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/micheleva
     data[2] = names
     data[3] = np.array([category_legend])
     data[4] = images
-    # save to csv file
-    np.save('data.npy', data)
+    # save to  file
+    np.save(output_file, data)
 
 
 
@@ -149,15 +178,18 @@ def prepare_data(descriptor: DescriptorInterface, dataset_path="/Users/micheleva
             # print('generata ' + imgName)
 
 
-hu = CallableHu(draw=True)
-lbp = CallableLbp(P = P, method=method)
-prepare_data(hu)
+if __name__ == '__main__':
+    print("esecuzione di describe_data.py")
 
-prepare_models()
+    hu = CallableHu(draw=True)
+    lbp = CallableLbp(P = P, method=method)
+    describe_data(hu, output_file='hu_data.npy')
 
-cv.waitKey(0)
+#prepare_models()
 
-sys.exit()
+
+
+    sys.exit()
 #TODO numero iterazioni open e close proporzionale alla definizione dell'immagine
 #TODO resize per normalizzare?
 # In caso farlo nello script bg_remover

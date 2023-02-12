@@ -18,17 +18,17 @@ from descriptors import DescriptorInterface
 class CallableHu(DescriptorInterface):
     """Extract text from a PDF."""
 
-    def __init__(self, draw: bool, dim=7):
-        self.draw = draw
+    def __init__(self, dim=7):
+        #self.draw = draw
         self.dim = dim
 
-    def describe(self, componentMask, componentMaskBool, area) -> str:
+    def describe(self, componentMask, componentMaskBool, area, name, draw= True):
         """Overrides DescriptorInterface.describe()"""
 
-        return hu_moments(componentMask, draw=self.draw)
+        return hu_moments(componentMask, draw=draw,  name=name)
 
 
-    def get_dim(self) -> dict:
+    def get_dim(self):
         """Overrides DescriptorInterface.get_dim()"""
         return self.dim
 
@@ -37,11 +37,11 @@ def hu_fun(componentMask, componentMaskBool, area):
     return hu_moments(componentMask, draw=True)
 
 
-def hu_moments(im, draw=False):
+def hu_moments(im, draw=False,name = 'Default name'):
     # Calculate Moments
     moments = cv.moments(im)
     # Calculate Hu Moments
-    huMoments = cv.HuMoments(moments)
+    huMoments = cv.HuMoments(moments).reshape(-1)
 
     for i in range(0, 7):
         # Log scale hu moments
@@ -50,6 +50,8 @@ def hu_moments(im, draw=False):
     if draw:
         # MOSTRA Immagine e relativi valori di hu moments
         f, [ax0, ax1] = plt.subplots(1, 2, figsize=(10,3), gridspec_kw={'width_ratios': [1, 2]}, constrained_layout = True)
+        f.suptitle(name)
+
         ax0.imshow(im, cmap=plt.cm.gray)
         ax0.axis('off')
         ax0.set_title('Image')
@@ -59,7 +61,7 @@ def hu_moments(im, draw=False):
 
         cells = np.empty((len(index), 2), dtype=object)
         cells[:,0] = index
-        cells[:,1] = huMoments.reshape(-1)
+        cells[:,1] = huMoments
 
         #mpl.rcParams.update({'font.size': 22})
 

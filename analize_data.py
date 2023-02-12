@@ -10,9 +10,13 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 import numpy.linalg as la
 
-def mapData(dist_matrix, X, y, images, metric, title):
-    mds = MDS(metric=metric, dissimilarity='precomputed', random_state=0)
+from sklearn.preprocessing import StandardScaler
 
+from sklearn.decomposition import KernelPCA
+
+
+def mapData(dist_matrix, X, y, images, metric, title, legend=None):
+    mds = MDS(metric=metric, dissimilarity='precomputed', random_state=0)
 
     # Get the embeddings
     pts = mds.fit_transform(dist_matrix)
@@ -21,49 +25,61 @@ def mapData(dist_matrix, X, y, images, metric, title):
     stress = mds.stress_
     print(f"stress value: {stress}")
 
+    plotPCA(y, pts, images, title, legend)
+
+    return pts, mds
+
+
+def plotPCA(y, pts, images, title, legend=None):
     # Plot the embedding, colored according to the class of the points
     fig = plt.figure(2, (15, 6))
     ax = fig.add_subplot(1, 2, 1)
     ax = sns.scatterplot(x=pts[:, 0], y=pts[:, 1],
-                         hue=y, palette=['r', 'g', 'b', 'c','violet','gold','lightcoral','chocolate','k','y'])
+                         hue=y, palette=['r', 'g', 'b', 'c', 'violet', 'gold', 'lightcoral', 'chocolate', 'k', 'y'])
+
+    plt.title('Scatter plot')
+    ax.set(xlabel="1st PCo", ylabel="2nd PCo")
+
+    if not (legend is None):
+        handles, labels = ax.get_legend_handles_labels()
+
+        ax.legend(handles, legend)
 
     # Add the second plot
     ax = fig.add_subplot(1, 2, 2)
+    ax.set(xlabel="1st PCo", ylabel="2nd PCo")
     # Plot the points again
     plt.scatter(pts[:, 0], pts[:, 1])
 
     # Annotate each point by its corresponding image
     for x, ind in zip(images, range(pts.shape[0])):
-
         imagebox = OffsetImage(x, zoom=0.3, cmap=plt.cm.gray)
         i = pts[ind, 0]
         j = pts[ind, 1]
         ab = AnnotationBbox(imagebox, (i, j), frameon=False)
         ax.add_artist(ab)
-    plt.title(title)
+    plt.suptitle(title)
+    ax.set_title('Scatter with images')
     plt.show()
 
 
-def plot_stress_values(dist_matrix, metric):
-    stress = []
-    # Max value for n_components
-    max_range = 21
-    for dim in range(1, max_range):
-        # Set up the MDS object
-        mds = MDS(n_components=dim, metric= False, dissimilarity='precomputed', random_state=0, normalized_stress=True)
-        # Apply MDS
-        pts = mds.fit_transform(dist_matrix)
-        # Retrieve the stress value
-        stress.append(mds.stress_)
-        # Plot stress vs. n_components
-    plt.plot(range(1, max_range), stress)
-    plt.xticks(range(1, max_range, 2))
+def PCAmapData(X, y, images, kernel='rbf', title='PCA', legend=None):
+    # mds = MDS(metric=metric, dissimilarity='precomputed', random_state=0)
+    pca = KernelPCA(n_components=None, kernel=kernel)
 
-    plt.xlabel('n_components')
-    plt.ylabel('stress')
-    plt.show()
+    # Get the embeddings
+    pts = pca.fit_transform(X)
 
-def plot_eigenvalues(A):
+    # Print the stress value
+    # stress = mds.stress_
+    # print(f"stress value: {stress}")
+
+    plotPCA(y, pts, images, title, legend)
+
+    return pts, pca
+
+
+def compute_eigenvalues(A):
     # square it
     A = A ** 2
 
@@ -78,51 +94,151 @@ def plot_eigenvalues(A):
     eigen_val = la.eig(B)[0]
     eigen_vec = la.eig(B)[1].T
 
-    # select top 2 dimensions (for example)
-    PC1 = np.sqrt(eigen_val[0]) * eigen_vec[0]
-    PC2 = np.sqrt(eigen_val[1]) * eigen_vec[1]
+    # # select top 2 dimensions (for example)
+    # PC1 = np.sqrt(eigen_val[0]) * eigen_vec[0]
+    # PC2 = np.sqrt(eigen_val[1]) * eigen_vec[1]
 
-    new_n = 20
-    rel_eigen_val = eigen_val / eigen_val.sum(dtype=float)*100
-    first_values = rel_eigen_val[0:new_n]
+    return eigen_val
 
-    range = np.arange(1, new_n+1)
-    plt.bar(range, height=first_values)
-    plt.xticks(range, range);
+
+def KPCA_explained_ratios(PCA):
+    values = PCA.eigenvalues_
+
+    rel_eigen_val = values / values.sum(dtype=float)
+
+    return rel_eigen_val
+
+
+def MDS_plot_ratios(A, n=20):
+    eigen_val = compute_eigenvalues(A)
+
+    rel_eigen_val = eigen_val / eigen_val.sum(dtype=float)
+    first_values = rel_eigen_val[0:n]
+
+    plot_ratios(first_values)
+
+
+# def PCA_plot_ratios(explained_variance):
+#
+#
+#     rel_eigen_val = eigenvalues / eigenvalues.sum(dtype=float) * 100
+#
+#     plot_ratios(rel_eigen_val)
+
+
+def plot_ratios(values):
+    values = values * 100
+
+    n = values.shape[0]
+    range = np.arange(1, n + 1)
+    x_ticks = np.arange(1, n + 1, step=int(n / 10))
+
+    plt.bar(range, height=values)
+    plt.xticks(x_ticks, x_ticks)
     plt.title('Variazione per componente')
     plt.xlabel('Componenti')
     plt.ylabel('% della variazione')
     plt.show()
 
-    cum_sum = np.cumsum(first_values)
+    cum_sum = np.cumsum(values)
 
-    ax =plt.bar(range, height=cum_sum)
-    plt.xticks(range, range);
+    ax = plt.bar(range, height=cum_sum)
+    plt.xticks(x_ticks, x_ticks)
     plt.title('Variazione cumulativa')
     plt.xlabel('Componenti')
     plt.ylabel('% della variazione')
-    plt.text(1,90,f'{float(cum_sum[-1])} %')
+    plt.text(1, 90, f'{float(cum_sum[-1])} %')
     plt.show()
+
+
+# trova il numero ottimale di componenti pca
+def optimal_components_n(dist_matrix, goal_perc=99):
+    eigen_val = compute_eigenvalues(dist_matrix)
+    rel_eigen_val = eigen_val / eigen_val.sum(dtype=float) * 100
+    cum_sum = np.cumsum(rel_eigen_val)
+    num_pca = 0
+    for i in range(cum_sum.shape[0]):
+        if cum_sum[i] >= goal_perc:
+            num_pca += 1
+            print("The optimal number of PCA's is: {}".format(num_pca))
+            break
+        else:
+            num_pca += 1
+            continue
+
+    return num_pca
 
     # Trova
 
-def analize_data(descriptors_file='data.npy'):
+
+def KPCA_oplimal_components(X, goal_perc=99, kernel='rbf'):
+    pca = KernelPCA(n_components=None, kernel=kernel)
+
+    # Get the embeddings
+    pts = pca.fit_transform(X)
+    ratios = KPCA_explained_ratios(pca)
+    cum_ratios = (np.cumsum(ratios))
+
+    num_pca = 0
+    num_found = False
+
+    for i in range(cum_ratios.shape[0]):
+        if cum_ratios[i] * 100 >= goal_perc:
+            num_pca += 1
+            print("The optimal number of PCA's is: {}".format(num_pca))
+            break
+        else:
+            num_pca += 1
+            continue
+
+    return num_pca, pca, pts
+
+
+def analize_data(descriptors_file='data.npy', output_file='data_extracted.npy',extraction_file='extraction_data.npy', draw=True):  # TODO correggi xticks grafici
     data = np.load(descriptors_file, allow_pickle=True)
-
-
+    scaler = StandardScaler()
     X = data[0]
     Y = data[1]
+    scaler.fit(X)
+    X = scaler.transform(X)
+
     file_names = data[2]
-    category_legend = data[3]
+    category_legend = data[3][0]
+    print(category_legend)
+
     images = data[4]
 
-    dist_euclid = euclidean_distances(X)
-    mapData(dist_euclid, X, Y, images, True,
-            'Metric MDS with Euclidean')
+    if draw:
+        dist_euclid = euclidean_distances(X)
 
-    plot_eigenvalues(dist_euclid)
-    plot_stress_values(dist_euclid,True)
+        _, _ = mapData(dist_euclid, X, Y, images, True,
+                       'MDS', legend=category_legend)
+
+        _, _ = PCAmapData(X, Y, images=images, legend=category_legend)
+
+        optimal_n = optimal_components_n(dist_euclid, 99)
+
+    pca_optimal_n, pca, pts = KPCA_oplimal_components(X, goal_perc=99)
+
+    if draw:
+        MDS_plot_ratios(dist_euclid, n=optimal_n)
+        plot_ratios(KPCA_explained_ratios(pca)[0:pca_optimal_n])
+    if not (__name__ == '__main__'):
+        pts = pts[:, 0:pca_optimal_n]
+        X = pts
+        data[0] = X
+        #data.resize(data.shape[0]+1)
+        #data[-1] = (scaler, pca, pca_optimal_n)
+        extraction_data = np.empty(1, dtype=object)
+        extraction_data[0] = (scaler, pca, pca_optimal_n)
+        np.save(extraction_file,extraction_data)
+        np.save(output_file, data)
+        print('Feature extracted with PCA and saved to file')
+
+    # plot_stress_values(dist_euclid,True, max_range=optimal_n)
+
+    return scaler, pca, pca_optimal_n
 
 
-
-analize_data()
+if __name__ == '__main__':
+    analize_data('data.npy')

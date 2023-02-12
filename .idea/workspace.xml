@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6a96362e-a9dd-4432-8199-455f8fe1ce92" name="Changes" comment="Refactor and added function ror_dim and other things">
-      <change afterPath="$PROJECT_DIR$/descriptors/shape_descriptors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="6a96362e-a9dd-4432-8199-455f8fe1ce92" name="Changes" comment="Added Hu Momements and Descriptor interface">
+      <change afterPath="$PROJECT_DIR$/binarization/binarize_with_bg.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analize_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/analize_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cl1.npy" beforeDir="false" afterPath="$PROJECT_DIR$/cl1.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/descriptors/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data.npy" beforeDir="false" afterPath="$PROJECT_DIR$/data.npy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/descriptors.py" beforeDir="false" afterPath="$PROJECT_DIR$/descriptors/color_descriptors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/descriptors/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/descriptors/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/descriptors/shape_descriptors.py" beforeDir="false" afterPath="$PROJECT_DIR$/descriptors/shape_descriptors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/descriptors/texture_descriptors.py" beforeDir="false" afterPath="$PROJECT_DIR$/descriptors/texture_descriptors.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/detect_objects.py" beforeDir="false" afterPath="$PROJECT_DIR$/detect_objects.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/glcm_descriptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/glcm_descriptor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/morph_fun.py" beforeDir="false" afterPath="$PROJECT_DIR$/morph_fun.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/no_bg_gamma.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/no_bg_gamma.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/old_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/old_version.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/parameters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/prepare_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/prepare_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/segmentation.py" beforeDir="false" afterPath="$PROJECT_DIR$/segmentation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/texture_descriptors.py" beforeDir="false" afterPath="$PROJECT_DIR$/descriptors/texture_descriptors.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/useful.py" beforeDir="false" afterPath="$PROJECT_DIR$/useful.py" afterDir="false" />
     </list>
@@ -83,9 +81,6 @@
       <module name="ToolsRecognition" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
@@ -165,6 +160,12 @@
       <workItem from="1675622039267" duration="20000" />
       <workItem from="1675707020505" duration="6682000" />
       <workItem from="1675778730709" duration="7648000" />
+      <workItem from="1675793400049" duration="285000" />
+      <workItem from="1675869997224" duration="4681000" />
+      <workItem from="1675942052854" duration="11715000" />
+      <workItem from="1675962471760" duration="9035000" />
+      <workItem from="1676028602714" duration="18342000" />
+      <workItem from="1676211171530" duration="8692000" />
     </task>
     <task id="LOCAL-00001" summary="First commit,&#10;partial dataset included">
       <created>1673007309083</created>
@@ -201,7 +202,14 @@
       <option name="project" value="LOCAL" />
       <updated>1675020732776</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added Hu Momements and Descriptor interface">
+      <created>1675793665336</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1675793665336</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -235,7 +243,8 @@
     <MESSAGE value="Fixed bugs&#10;Added parameters.py for shared parameters between files&#10;Added more functions to useful.py&#10;Filled dataset with all categories exept 'Uidentified objects'" />
     <MESSAGE value="Separated functionalities of extract_objects.py in different files and functions" />
     <MESSAGE value="Refactor and added function ror_dim and other things" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor and added function ror_dim and other things" />
+    <MESSAGE value="Added Hu Momements and Descriptor interface" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Hu Momements and Descriptor interface" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -252,17 +261,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/useful.py</url>
-          <line>144</line>
+          <line>191</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/descriptors/shape_descriptors.py</url>
-          <line>37</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/segmentation.py</url>
-          <line>139</line>
+          <line>166</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
@@ -280,7 +284,8 @@
     <SUITE FILE_PATH="coverage/ToolsRecognition$prepare_data.coverage" NAME="prepare_data Coverage Results" MODIFIED="1674817402872" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ToolsRecognition$extract_objects.coverage" NAME="extract_objects Coverage Results" MODIFIED="1674497144572" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ToolsRecognition$models.coverage" NAME="models Coverage Results" MODIFIED="1674217993195" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ToolsRecognition$analize_data.coverage" NAME="analize_data Coverage Results" MODIFIED="1674823049967" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ToolsRecognition$ToolsRecognition.coverage" NAME="ToolsRecognition Coverage Results" MODIFIED="1675792286874" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ToolsRecognition$analize_data.coverage" NAME="analize_data Coverage Results" MODIFIED="1676139777582" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ToolsRecognition$ToolsRecognition.coverage" NAME="ToolsRecognition Coverage Results" MODIFIED="1676217303528" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ToolsRecognition$main.coverage" NAME="main Coverage Results" MODIFIED="1675873920956" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

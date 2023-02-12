@@ -143,8 +143,8 @@ class LocalBinaryPatterns:
 
     def compute_dim(self, num_points, method): #TODO togli parametri gia presenti nell'oggetto
         if method == "ror":
-            #return self.ror_dim(num_points)
-            return 2 ** num_points
+            return self.ror_dim(num_points)
+            #return 2 ** num_points
         elif method == "uniform":
             return num_points + 2
         else:
@@ -186,7 +186,10 @@ class LocalBinaryPatterns:
 
 
     # TODO aggiungere parametro show = True per decidere se i grafici vengano mostrati o meno
-    def describe(self, image, mask, eps=1e-7):
+    def describe(self, image, mask, name = 'Default name',draw = True):
+        eps = 1e-7 #TODO
+
+
         # compute the Local Binary Pattern representation
         # of the image, and then use the LBP representation
         # to build the histogram of patterns
@@ -194,20 +197,23 @@ class LocalBinaryPatterns:
                                            self.radius, method=self.method)
 
         # MOSTRA LBP DELL'IMMAGINE E DELLA MASCHERA
+        if draw == True:
+            f, [ax0, ax1] = plt.subplots(1, 2)
+            f.suptitle(name)
 
-        f, [ax0, ax1] = plt.subplots(1, 2)
-        im_codes = ax0.imshow(lbp)
-        ax0.axis('off')
-        ax0.set_title('LBP of image')
-        plt.colorbar(im_codes, ax=ax0)
 
-        x = np.ma.array(lbp, mask=np.logical_not(mask))
-        # x.filled(fill_value=0)
-        im_masked = ax1.imshow(x)
-        ax1.axis('off')
-        ax1.set_title('LBP of ROI')
-        plt.colorbar(im_masked, ax=ax1)
-        plt.show()
+            im_codes = ax0.imshow(lbp)
+            ax0.axis('off')
+            ax0.set_title('LBP of image')
+            plt.colorbar(im_codes, ax=ax0)
+
+            x = np.ma.array(lbp, mask=np.logical_not(mask))
+            # x.filled(fill_value=0)
+            im_masked = ax1.imshow(x)
+            ax1.axis('off')
+            ax1.set_title('LBP of ROI')
+            plt.colorbar(im_masked, ax=ax1)
+            plt.show()
 
         # CALCOLA ISTOGRAMMA DELL' LBP DELL' IMMAGINE E DELLA MASCHERA
 
@@ -228,19 +234,21 @@ class LocalBinaryPatterns:
         # hist /= (hist.sum() + eps)
 
         # MOSTRA ISTOGRAMMI DI image E mask CON RELATIVE IMMAGINI
+        if draw == True:
+            f, [[ax0, ax1], [ax2, ax3]] = plt.subplots(2, 2)
+            f.suptitle(name)
 
-        f, [[ax0, ax1], [ax2, ax3]] = plt.subplots(2, 2)
-        ax0.imshow(image, cmap=plt.cm.gray)
-        ax0.axis('off')
-        ax0.set_title('Image')
-        ax1.imshow(mask, cmap=plt.cm.gray)
-        ax1.axis('off')
-        ax1.set_title('Mask')
-        ax2.plot(h_img)
-        ax2.set_title('LBP of image')
-        ax3.plot(h_masked)
-        ax3.set_title('LBP of ROI')
-        plt.show()
+            ax0.imshow(image, cmap=plt.cm.gray)
+            ax0.axis('off')
+            ax0.set_title('Image')
+            ax1.imshow(mask, cmap=plt.cm.gray)
+            ax1.axis('off')
+            ax1.set_title('Mask')
+            ax2.plot(h_img)
+            ax2.set_title('LBP of image')
+            ax3.plot(h_masked)
+            ax3.set_title('LBP of ROI')
+            plt.show()
 
         # return the histogram of Local Binary Patterns
         return h_masked
@@ -250,6 +258,10 @@ class find_r_mode(Enum):
     WIDTH = "wi"
 
 r_mode= find_r_mode.AREA
+
+#Given the method of the LBP and the area of the object finds a proper radius and creates an lbp
+#Object with it(scale indipendent)
+
 
 def parametric_lbp(num_points=18, method="ror",width = 500, area = 250000):#TODO 0
     global UNIFORM_MULT
@@ -269,7 +281,7 @@ def parametric_lbp(num_points=18, method="ror",width = 500, area = 250000):#TODO
     return LocalBinaryPatterns(num_points=num_points, radius=radius, method=method)
 
 
-#Funzione passabile come parametro "descrittore" a detect_objects() e prepare_data()
+#Funzione passabile come parametro "descrittore" a detect_objects() e describe_data()
 
 def lbp_fun(componentMask, componentMaskBool, area):
     lbpDescriptor = parametric_lbp(P, method=method, area=area)
@@ -281,18 +293,19 @@ class CallableLbp(DescriptorInterface):
     def __init__(self, P, method):
         self.P = P
         self.method = method
+        self.dim = LocalBinaryPatterns().compute_dim(self.P, self.method)
 
-    def describe(self, componentMask, componentMaskBool, area) -> str:
+    def describe(self, componentMask, componentMaskBool, area, name, draw = True):
         """Overrides DescriptorInterface.describe()"""
 
-        lbpDescriptor = parametric_lbp(P, method=self.method, area=area)
-        lbp = lbpDescriptor.describe(componentMask, componentMaskBool)
+        lbpDescriptor = parametric_lbp(self.P, method=self.method, area=area)
+        lbp = lbpDescriptor.describe(componentMask, componentMaskBool, name = name, draw= True)
         return lbp
 
-    def get_dim(self) -> dict:
+    def get_dim(self):
         """Overrides DescriptorInterface.get_dim()"""
 
-        return LocalBinaryPatterns().compute_dim(self.P, self.method)
+        return self.dim
 
 def find_r(width = 500, area = 250000, mode=find_r_mode.WIDTH, mult = 0.2, d = 5):#TODO tune mult and d
     if find_r_mode.AREA == mode:

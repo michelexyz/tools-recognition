@@ -1,9 +1,9 @@
 import cv2 as cv
 import numpy as np
-
+from parameters import kShape
 #FUNZIONI MORFOLOGICHE #TODO rimetti nel file originale da modificare con if (__name__ == '__main__'):
 
-def open_close(img, type, dim = 1, er_it=1, dil_it=1, shape = cv.MORPH_RECT):
+def open_close(img, type, dim = 1, er_it=1, dil_it=1, shape = kShape):
     kernel = cv.getStructuringElement(shape,(int(dim),int(dim)))
     if type == 'close':
         # closing = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) # dilation -> erosion

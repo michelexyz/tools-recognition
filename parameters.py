@@ -16,3 +16,8 @@ connectivity = 4 #TODO tune
 
 #Morphological functions
 kShape = cv.MORPH_CROSS # TODO tune
+
+
+#Resize
+#diagonal
+d = 500
