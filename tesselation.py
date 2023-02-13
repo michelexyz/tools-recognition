@@ -19,7 +19,7 @@ def tassellamela(img, step, dim, descriptor_funct=None):
     a = 0
     b = 0
 
-    #iterating over image
+    # iterating over image
     for i in range(0, hight-dim+1, step):
 
         for j in range(0, width-dim+1, step):
@@ -32,6 +32,7 @@ def tassellamela(img, step, dim, descriptor_funct=None):
             if descriptor_funct is not None:
                 descripted_roi = descriptor_funct(roi, num)
             else:
+                # ATTENTION! in this case, the roi is not beeing descripted despite its name
                 descripted_roi = roi
 
             # put the computed (descripted) roi in descriptors matrix
