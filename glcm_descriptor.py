@@ -9,22 +9,30 @@ from tesselation import tassellamela
 import os
 from PIL import Image
 from kmeans_classifier import k_means
+from quantization import kmeans_quantization
+
 
 
 # returns an array formatted for k-means with K = 2
 def k2_means_data_format(feature1, feature2):
-    formatted = [[feature1],[feature2]]
+    formatted = np.column_stack((feature1, feature2))
     return formatted
 
-# returns an array formatted for k-means with K = 3
+# returns an array formatted for k-means with 3 features
 def k3_means_data_format(feature1, feature2, feature3):
-    formatted = [[feature1],[feature2],[feature3]]
+    formatted = np.column_stack((feature1, feature2, feature3))
     return formatted
 
-# returns an array formatted for k-means with K = 4
+# returns an array formatted for k-means with 4 features
 def k4_means_data_format(feature1, feature2, feature3, feature4):
-    formatted = [[feature1],[feature2],[feature3],[feature4]]
+    formatted = np.column_stack((feature1, feature2, feature3, feature4))
     return formatted
+
+# returns an array formatted for k-means with 5 features
+def k5_means_data_format(feature1, feature2, feature3, feature4, feature5):
+    formatted = np.column_stack((feature1, feature2, feature3, feature4, feature5))
+    return formatted
+
 
 
 # draws rectangles of 2 different colors depending which class
@@ -36,14 +44,15 @@ def kmeans2_out(labels, tassellata, img, step, patch_dim):
     hight = img.shape[0]
 
     # iterating on image step by step
+    # and on label "image" 1 by 1
     lab_i = 0
     for i in range(0, hight-patch_dim+1, step):
         lab_j = 0
         for j in range(0, width-patch_dim+1, step):
 
             # getting top left and bottom right coordinates
-            top_left = (i,j)
-            bottom_right = (i+patch_dim,j+patch_dim)
+            top_left = (j,i)
+            bottom_right = (j+patch_dim,i+patch_dim)
 
             # draw a rectangle
             if labels[lab_i][lab_j] == 0:
@@ -62,7 +71,7 @@ def kmeans2_out(labels, tassellata, img, step, patch_dim):
         lab_i += 1
 
 
-    return 0
+    return img
 
 
 def k3_out(labels, tassellata, img, step, patch_dim):
@@ -75,12 +84,17 @@ PATCH_SIZE = 30
 STEP = PATCH_SIZE
 
 # image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/non_omogeneus_backgrounds/blue_square/IMG20230120125942.jpg')
-image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/pinza.jpg')
+# image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/pinza.jpg')
+image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/some_tools_dalmata_bg.jpg')
+
+quant = kmeans_quantization(image, 8)
+resize_and_show('quantizzata', quant, 50)
+# cv.waitKey(0)
 
 gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
 # showing read image
-resize_and_show('image', image, 30)
+resize_and_show('image', image, 60)
 
 # distances and angles con i quali calcolo GLCM matrix
 # distances = [3, 5, 7]
@@ -126,9 +140,13 @@ for row in tassellata:
 
 # formatting the data, using dissimilarity and correlation
 features_kmeans = k2_means_data_format(diss_sim, corr)
+
+# formatting the data, using all 5 glcm features
+# features_kmeans = k5_means_data_format(diss_sim, corr, homogen, energy, contrast)
+
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 10, 1.0)
 
-# use K-MEANS with K = ?
+# use K-MEANS with K classes
 K = 2
 # this returns the objects of the first and second classes separated, and the "labels" array is a 2 dimensions array
 # saying "the object with index n belongs to the class labels[n]" (credo)
@@ -139,64 +157,20 @@ class1, class2, labels = k_means(features_kmeans, K, criteria)
 labels2 = labels.reshape(tassellata.shape)
 
 # showing on the image which tassello belongs to which class
-# depending on how many classes we choose
-
+# depending on how many classes we choose.
+#
 if K == 2:
-    kmeans2_out(labels2, tassellata, image, STEP, PATCH_SIZE)
+    out = kmeans2_out(labels2, tassellata, image, STEP, PATCH_SIZE)
 elif K == 3:
-    k3_out(labels2, tassellata, image, STEP, PATCH_SIZE)
+    out = k3_out(labels2, tassellata, image, STEP, PATCH_SIZE)
+
+# showing output
+resize_and_show('segmentata', out, 40)
+
+# path = 'C:/Users/glauc/OneDrive/Desktop/UNI/elaborazione immagini digitali/output/'
+# cv.imwrite(os.path.join(path, 'glcm_kmeans_2features_pach30_quant.jpg'), out)
 
 
-
-
-
-#
-# # OPTIONAL PLOTTING for Visualization of points and patches
-# # create the figure
-# fig = plt.figure(figsize=(12, 12))
-#
-# # display original image with locations of patches
-# ax = fig.add_subplot(3, 2, 1)
-# # ax.imshow(gray, cmap=plt.cm.gray, vmin=0, vmax=255)
-# # for (y, x) in cell_locations:
-# #     ax.plot(x + PATCH_SIZE / 2, y + PATCH_SIZE / 2, 'gs')
-# #
-# # for (y, x) in scratch_locations:
-# #     ax.plot(x + PATCH_SIZE / 2, y + PATCH_SIZE / 2, 'bs')
-#
-# # ax.set_xlabel('Original Image')
-# ax.set_xticks([])
-# ax.set_yticks([])
-# ax.axis('image')
-#
-# # for each patch, plot (dissimilarity, correlation)
-# ax = fig.add_subplot(3, 2, 2)
-#
-# ax.plot(diss_sim[:], corr[:], 'go', label='all')
-#
-# # ax.plot(diss_sim[:len(cell_patches)], corr[:len(cell_patches)], 'go', label='cells')
-# # ax.plot(diss_sim[len(cell_patches):], corr[len(cell_patches):], 'bo', label='Scratch')
-# ax.set_xlabel('GLCM Dissimilarity')
-# ax.set_ylabel('GLCM Correlation')
-# ax.legend()
-#
-# # display the image patches
-# # for i, patch in enumerate(cell_patches):
-# #     ax = fig.add_subplot(3, len(cell_patches), len(cell_patches)*1 + i + 1)
-# #     ax.imshow(patch, cmap=plt.cm.gray, vmin=0, vmax=255)
-# #     ax.set_xlabel('Cells %d' % (i + 1))
-#
-# # for i, patch in enumerate(scratch_patches):
-# #     ax = fig.add_subplot(3, len(scratch_patches), len(scratch_patches)*2 + i + 1)
-# #     ax.imshow(patch, cmap=plt.cm.gray, vmin=0, vmax=255)
-# #     ax.set_xlabel('Scratch %d' % (i + 1))
-#
-#
-# # display the patches and plot
-# fig.suptitle('Grey level co-occurrence matrix features', fontsize=14, y=1.05)
-# plt.tight_layout()
-# plt.show()
-# #daje forzaroma
 
 cv.waitKey(0)
 cv.destroyAllWindows()
