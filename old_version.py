@@ -6,17 +6,17 @@ import numpy as np
 
 from descriptors import color_descriptors as dsc
 
-from extract_objects import extract_with_trackbar
+from binarization.extract_objects import extract_with_trackbar
 from descriptors.texture_descriptors import parametric_lbp
 
-from gamma import normalize_with_trackbar, optimal_gamma_on_intensity
-from morph_fun import open_close
+from tr_utils.gamma import normalize_with_trackbar, optimal_gamma_on_intensity
+from tr_utils.morph_fun import open_close
 
 from IPython.display import display
 
-from useful import remove_imperfections
+from tr_utils.useful import remove_imperfections
 
-from parameters import *
+from tr_utils.parameters import *
 
 
 
@@ -255,7 +255,7 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
     r, c, _ = image.shape
 
     #CARICA IL MODELLO
-    data = np.load('cl1.npy', allow_pickle=True)
+    data = np.load('files/working_files/cl1.npy', allow_pickle=True)
 
     m = data[0]
 
@@ -374,7 +374,7 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
                 display(prediction)
                 #category = prediction['Prediction'].iat[1]
 
-                probabilistc_prediction = m.predict_with_prob([lbp])
+                probabilistc_prediction = m.predict_with_multiple([lbp])
                 category = probabilistc_prediction[0]
                 prob = probabilistc_prediction[1]
 
@@ -395,10 +395,10 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
 
 
 # Leggi immagine con oggetti multipli
-image = cv.imread(os.path.expanduser("~/PycharmProjects/ToolsRecognition/data/tools.jpg"))
+image = cv.imread(os.path.expanduser("/data/multiple_objects/tools.jpg"))
 
 # Leggi immagine del relativo background
-bg = cv.imread(os.path.expanduser("~/PycharmProjects/ToolsRecognition/data/green.jpg"))
+bg = cv.imread(os.path.expanduser("/data/backgrounds/green.jpg"))
 
 detect_objects(image,bg)
 

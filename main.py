@@ -7,14 +7,16 @@ from analize_data import analize_data
 from descriptors import DescriptorCombiner
 from descriptors.shape_descriptors import CallableHu
 from descriptors.texture_descriptors import CallableLbp
-from detect_objects import detect_objects
+from detection.detect_objects import detect_objects
 
 import numpy as np
 
 from prepare_data import describe_data
 
-import parameters
-from train import prepare_models
+from tr_utils import parameters
+from classification.prepare_models import prepare_models
+
+from files.files_handler import get_file_abs_path, get_dataset_path, get_data_folder
 
 # import cv2 as cv
 # import os
@@ -98,7 +100,7 @@ from train import prepare_models
 #
 # cv.imshow("imgBoxed", imgBoxed)
 
-#TODO gestione eccezioni dei file
+# TODO gestione eccezioni dei file
 # TODO UI E analisi dei file specifici
 
 print('yo')
@@ -108,8 +110,6 @@ lbp = CallableLbp(P=parameters.P, method=parameters.method)
 print('yo')
 # COMBINA I DESCRITTORI
 descriptor = DescriptorCombiner([hu, lbp])
-
-
 
 describe_str = 'describe'
 analize_str = 'analyze'
@@ -122,54 +122,64 @@ pipe_line = [describe_str]
 
 pipe_line = default_pipe
 
+
+
+pipe_line = [train_str, detect_str]
+
 #pipe_line = [detect_str]
 
-#feature_extracted = False
+# feature_extracted = False
 
 f_extraction_data = None
 
-with_extracted_data = True
+with_extracted_data = False
 
-dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"
+dataset_path = str(get_dataset_path())
 
-im_path = os.path.expanduser("~/PycharmProjects/ToolsRecognition/data/tools.jpg")
+bg_path = str(get_data_folder('backgrounds').joinpath('green', 'green.jpg').resolve())
 
-bg_path = os.path.expanduser("~/PycharmProjects/ToolsRecognition/data/green.jpg")
+im_path = str(get_data_folder('multiple_objects').joinpath('tools.jpg').resolve())
 
 op_num = 1
+
+draw_dataset = False
+draw_test = True
+
+described_path = str(get_file_abs_path('data.npy'))
+extracted_path = str(get_file_abs_path('data_extracted.npy'))
+
+cl_path = str(get_file_abs_path('cl1.npy'))
+cl_extracted_path = str(get_file_abs_path('cl1_extracted.npy'))
+
+extraction_path = str(get_file_abs_path('extraction_data.npy'))
 
 if describe_str in pipe_line:
     print(f"Operazione {op_num}: DESCRIZIONE DEI DATI")
     op_num += 1
 
-    #DESCRIVE LE IMMAGINI E SALVA I DATI SU FILE
-    describe_data(descriptor, dataset_path=dataset_path,output_file='data.npy')
-
-
+    # DESCRIVE LE IMMAGINI E SALVA I DATI SU FILE
+    describe_data(descriptor, dataset_path=dataset_path, output_file=described_path, draw=draw_dataset)
 
 if analize_str in pipe_line:
     print(f"Operazione {op_num}: ANALISI DEI DATI E FEATURE EXTRACION")
     op_num += 1
 
+    _, _, _ = analize_data(described_path,extracted_path,extraction_path, draw=False)
+    #f_extraction_data = scaler, mds, optimal_n
 
-
-    scaler, mds, optimal_n = analize_data('data.npy')
-    f_extraction_data = scaler, mds, optimal_n
-
-    #feature_extracted = True
+    # feature_extracted = True
 
 if train_str in pipe_line:
     print(f"Operazione {op_num}: TRAINING DEL MODELLO")
     op_num += 1
 
-    #ALLENA I MODELLI E LI SALVA SU FILE
+    # ALLENA I MODELLI E LI SALVA SU FILE
 
     if with_extracted_data:
-        prepare_models('data_extracted.npy', 'cl1_extracted.npy')
+        prepare_models(extracted_path, cl_extracted_path)
 
     else:
-        prepare_models('data_extracted.npy', 'cl1.npy')
-
+        prepare_models(described_path, cl_path)
 
 if detect_str in pipe_line:
     print(f"Operazione {op_num}: OBJECT DETECTION")
@@ -180,30 +190,23 @@ if detect_str in pipe_line:
     # Leggi immagine del relativo background
     bg = cv.imread(bg_path)
 
-
     # CARICA IL MODELLO
     m = None
     if with_extracted_data:
-        cl_data = np.load('cl1_extracted.npy', allow_pickle=True)
+        cl_data = np.load(cl_extracted_path, allow_pickle=True)
 
         m = cl_data[0]
 
-
         # CARICA I DATI DI FEATURE EXTRACTION
-        data = np.load('extraction_data.npy', allow_pickle=True)
+        data = np.load(extraction_path, allow_pickle=True)
         f_extraction_data = data[0]
 
     else:
-        cl_data = np.load('cl1.npy', allow_pickle=True)
+        cl_data = np.load(cl_path, allow_pickle=True)
         m = cl_data[0]
 
-
-
-
-
-
-
-    detect_objects(image,bg,obj_classifier=m, descriptor=descriptor, f_extraction_data=f_extraction_data)
+    detect_objects(image, bg, obj_classifier=m, descriptor=descriptor, f_extraction_data=f_extraction_data,
+                   draw=draw_test)
 # cv.waitKey(0)
 #
 # cv.destroyAllWindows()

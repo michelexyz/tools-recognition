@@ -5,11 +5,12 @@ import os
 import numpy as np
 
 from descriptors import DescriptorInterface
-from descriptors.shape_descriptors import hu_fun, CallableHu
+from descriptors.shape_descriptors import CallableHu
 from descriptors.texture_descriptors import CallableLbp
-from train import prepare_models
-from useful import remove_imperfections, remove_small_objects, resize_to_fixed_d, remove_imperfections_adv
-from parameters import *
+from tr_utils.useful import resize_to_fixed_d, remove_imperfections_adv
+from tr_utils.parameters import *
+
+from files.files_handler import get_file_abs_path
 
 
 def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed", output_file='data.npy', draw= True):
@@ -140,7 +141,7 @@ def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelev
                 # desc = lbpDescriptor.describe(binarized, binarized_bool)
                 # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
-                desc = descriptor.describe(binarized, binarized_bool, area, file.stem)
+                desc = descriptor.describe(binarized, binarized_bool, area, file.stem, draw=draw)
 
                 #print("ciao")
 
@@ -161,7 +162,7 @@ def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelev
     data[0] = X
     data[1] = Y
     data[2] = names
-    data[3] = np.array([category_legend])
+    data[3] = np.array([category_legend]) #TODO togli parentesi quadrate
     data[4] = images
     # save to  file
     np.save(output_file, data)
@@ -181,9 +182,11 @@ def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelev
 if __name__ == '__main__':
     print("esecuzione di describe_data.py")
 
-    hu = CallableHu(draw=True)
+    hu = CallableHu()
     lbp = CallableLbp(P = P, method=method)
-    describe_data(hu, output_file='hu_data.npy')
+    output_file = get_file_abs_path('hu_data.npy')
+
+    describe_data(hu, output_file=output_file)
 
 #prepare_models()
 

@@ -1,5 +1,7 @@
 import numpy as np
 
+from files.files_handler import get_file_abs_path
+
 from sklearn.manifold import MDS
 from matplotlib import pyplot as plt
 import sklearn.datasets as dt
@@ -241,4 +243,9 @@ def analize_data(descriptors_file='data.npy', output_file='data_extracted.npy',e
 
 
 if __name__ == '__main__':
-    analize_data('data.npy')
+
+    data_file = get_file_abs_path('data.npy')
+    output_file = get_file_abs_path('data_extracted.npy')
+    extraction_file = get_file_abs_path('extraction_data.npy')
+
+    analize_data(data_file, output_file, extraction_file)

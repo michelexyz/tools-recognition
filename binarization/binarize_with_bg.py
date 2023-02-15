@@ -3,7 +3,8 @@
 import cv2 as cv
 
 from descriptors.color_descriptors import computeColor, computeStd
-from gamma import normalize_with_trackbar, optimal_gamma_on_intensity
+from binarization.extract_objects import extract_with_trackbar
+from tr_utils.gamma import normalize_with_trackbar, optimal_gamma_on_intensity
 
 
 #BINARIZZA L'immagine attraverso un immagine campione dello sfondo
