@@ -348,7 +348,7 @@ class CallableLbp(DescriptorInterface):
     def get_dim(self):
         """Overrides DescriptorInterface.get_dim()"""
 
-        return self.dim
+        return self.dim, [self.dim]
 
 
 def find_r(width=500, area=250000, mode=find_r_mode.WIDTH, mult=0.2, d=5):  # TODO tune mult and d

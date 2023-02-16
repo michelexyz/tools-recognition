@@ -8,7 +8,7 @@ from tr_utils.useful import remove_imperfections, resize_to_fixed_d
 from tr_utils.parameters import *
 
 
-def segment_and_detect(image, obj_thresh, m, descriptor, f_extraction_data = None, apply_on_mask = True, draw = True,show_objects= False, ):
+def segment_and_detect(image, obj_thresh, m, descriptor, transformation_data = None, apply_on_mask = True, draw = True,show_objects= False, ):
 
     global kShape  # TODO add to parameters.py
     erosionIt = 2  # TODO tune
@@ -146,17 +146,36 @@ def segment_and_detect(image, obj_thresh, m, descriptor, f_extraction_data = Non
                 else:
                     description = descriptor.describe(masked, componentMaskBool.astype("bool"), area, name = obj_name, draw=draw)
 
+
+                scale_data, f_extraction_data = transformation_data
+                scaled = None
+                if not(scale_data is None):
+
+                    #reshape per scaler e pca
+                    description = description.reshape((1,description.shape[0]))
+
+                    dims, scaler, weights =scale_data
+                    description = scaler.transform(description)
+                    start = 0
+
+                    for i, dim in enumerate(dims):
+                        description[:, start: start + dim] = description[:,start: start + dim] * weights[i]
+
+                        start += dim
+                    scaled = description
+                    description = scaled[0].reshape(-1)
+
                 if not(f_extraction_data is None):
                     #Estraggo le feature data la PCA
-                    scaler, pca, optimal_n = f_extraction_data
+                    pca, optimal_n = f_extraction_data
+                    if scaled is None:
+                        raise("cant' extract before scaling")
+                    else:
+                        extracted = pca.transform(scaled)
 
-                    scaled = scaler.transform([description])
+                        first_components = extracted[0][0:optimal_n]
 
-                    extracted = pca.transform(scaled)
-
-                    first_components = extracted[0][0:optimal_n]
-
-                    description = first_components.reshape(-1)
+                        description = first_components.reshape(-1)
 
 
 
@@ -167,7 +186,7 @@ def segment_and_detect(image, obj_thresh, m, descriptor, f_extraction_data = Non
                 display(prediction)
                 # category = prediction['Prediction'].iat[1]
 
-                probabilistc_prediction = m.predict_with_multiple_proba([description])
+                probabilistc_prediction = m.predict_with_multiple([description], n=3)
                 category = probabilistc_prediction[0]
                 prob = probabilistc_prediction[1]
 

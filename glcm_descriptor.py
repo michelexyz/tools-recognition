@@ -1,13 +1,10 @@
 import matplotlib.pyplot as plt
 
 from skimage.feature import graycomatrix, graycoprops
-from skimage import io
 import cv2 as cv
 import numpy as np
-from useful import resize_and_show
+from tr_utils.useful import resize_and_show
 from tesselation import tassellamela
-import os
-from PIL import Image
 
 PATCH_SIZE = 45
 

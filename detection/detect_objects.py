@@ -10,7 +10,7 @@ from tr_utils.parameters import *
 
 
 
-def detect_objects(image, bg, descriptor, obj_classifier=None, bgClassifier=None , f_extraction_data= None, draw = True):
+def detect_objects(image, bg, descriptor, obj_classifier=None, bgClassifier=None , transformation_data= None, draw = True):
 
 
 
@@ -18,7 +18,7 @@ def detect_objects(image, bg, descriptor, obj_classifier=None, bgClassifier=None
 
     #salva l'immagine con le bounding box della predizione in rectImage
     #salva l'immagine segmentata in labels
-    rectImage,(_,labels,_,_,_) = segment_and_detect(image, obj_thresh, obj_classifier,descriptor, f_extraction_data, draw=draw)
+    rectImage,(_,labels,_,_,_) = segment_and_detect(image, obj_thresh, obj_classifier,descriptor, transformation_data, draw=draw)
 
     plt.imshow(labels)
     plt.colorbar()

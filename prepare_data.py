@@ -40,7 +40,7 @@ def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelev
     all = Path(dataset_path).glob('**/*.png')
     l = len(list(all))
     #dim = LocalBinaryPatterns().compute_dim(P, method)
-    dim = descriptor.get_dim()#TODO
+    dim, dims = descriptor.get_dim()#TODO
 
     X = np.empty((l, dim))
     Y = np.empty(l)
@@ -158,12 +158,13 @@ def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelev
                 #cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
                 element_index   +=1
             category_index += 1
-    data = np.empty(5, dtype=object)
+    data = np.empty(6, dtype=object)
     data[0] = X
     data[1] = Y
     data[2] = names
     data[3] = np.array([category_legend]) #TODO togli parentesi quadrate
     data[4] = images
+    data[5] = np.array(dims)
     # save to  file
     np.save(output_file, data)
 

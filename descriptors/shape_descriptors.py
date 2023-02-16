@@ -30,7 +30,7 @@ class CallableHu(DescriptorInterface):
 
     def get_dim(self):
         """Overrides DescriptorInterface.get_dim()"""
-        return self.dim
+        return self.dim, [self.dim]
 
 
 def hu_fun(componentMask, componentMaskBool, area):

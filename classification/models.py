@@ -287,8 +287,7 @@ class Models:
     # TODO fun for wrong predictions file names
 
     #TODO metti i commenti del
-    def predict_with_multiple(self, x):
-        n = 3
+    def predict_with_multiple(self, x, n):
         best = self.predict_with_best_n(x,n)
         print("="*30)
         print("Best classifiers:")
@@ -305,16 +304,17 @@ class Models:
 
         probabilistc_prediction = []
         for p, cl_name in enumerate(best_cl):
-            cl_index = None
-            for i, cl in enumerate(classifiers):
-                if cl_name == cl:
-                    cl_index = i
+            # cl_index = None
+            # for i, cl in enumerate(classifiers):
+            #     if cl_name == cl:
+            #         cl_index = i
+            #
+            #         break
+            # if cl_index == None:
+            #     raise Exception("Classifier not found in dataframe")
 
-                    break
-            if cl_index == None:
-                raise Exception("Classifier not found in dataframe")
             prediction = best_pred[p]
-            weight = accuracy_w[cl_index]
+            weight = accuracy_w[p]
             pred_already_present = False
             for pred in probabilistc_prediction:
                 if prediction == pred[0]:
@@ -342,8 +342,8 @@ class Models:
         else:
             raise Exception("Best prediction not found ")
 
-    def predict_with_multiple_proba(self, x):
-        n = 3
+    def predict_with_multiple_proba(self, x, n):
+
         best = self.predict_with_best_n(x,n, predict_proba=True)
         print("="*30)
         print("Best classifiers:")
@@ -365,18 +365,10 @@ class Models:
 
         #per ogni classificatore dei migliori
         for p, cl_name in enumerate(best_cl):
-            cl_index = None
-            #trova il relativo indice nel datadrame mean
-            for i, cl in enumerate(classifiers):
-                if cl_name == cl:
-                    cl_index = i
 
-                    break
-            if cl_index == None:
-                raise Exception("Classifier not found in dataframe")
-            # ed estrai quindi la relativa accuratezza e previsione
+            # estrai la relativa accuratezza e previsione
             prediction = best_pred[p]
-            weight = accuracy_w[cl_index]
+            weight = accuracy_w[p]
             pred_already_present = False
 
             # e itera sull'array delle previsioni probabilistiche
@@ -418,12 +410,15 @@ class Models:
 
 
         #TODO 0
+    #Finds the ides of the classifiers mantaining the order given in 'names'
     def get_ids_by_names(self, names):
         ids =[]
-        for i, clf in enumerate(self.classifiers):
-            for name in names:
+
+        for name in names:
+            for i, clf in enumerate(self.classifiers):
                 if name == clf.__class__.__name__.split('(', 1)[0]:
                     ids.append(i)
+
         return ids
 
 

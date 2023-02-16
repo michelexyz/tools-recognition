@@ -232,14 +232,14 @@ def analize_data(descriptors_file='data.npy', output_file='data_extracted.npy',e
         #data.resize(data.shape[0]+1)
         #data[-1] = (scaler, pca, pca_optimal_n)
         extraction_data = np.empty(1, dtype=object)
-        extraction_data[0] = (scaler, pca, pca_optimal_n)
+        extraction_data[0] = (pca, pca_optimal_n)
         np.save(extraction_file,extraction_data)
         np.save(output_file, data)
         print('Feature extracted with PCA and saved to file')
 
     # plot_stress_values(dist_euclid,True, max_range=optimal_n)
 
-    return scaler, pca, pca_optimal_n
+    return pca, pca_optimal_n
 
 
 if __name__ == '__main__':
