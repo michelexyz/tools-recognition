@@ -1,5 +1,4 @@
-import cv2 as cv
-from useful import *
+from tr_utils.useful import *
 
 
 # divide the input image in sub-regions

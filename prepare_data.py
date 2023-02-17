@@ -1,20 +1,19 @@
-import math
 import sys
 from pathlib import Path
 #from rembg import remove, new_session
-import os, shutil
-import cv2 as cv
+import os
 import numpy as np
-import pandas as pd
 
-from morph_fun import open_close
-from texture_descriptors import LocalBinaryPatterns, find_r_mode
-from texture_descriptors import parametric_lbp
-from useful import remove_imperfections, remove_small_objects, resize_to_fixed_d
-from parameters import *
+from descriptors import DescriptorInterface
+from descriptors.shape_descriptors import CallableHu
+from descriptors.texture_descriptors import CallableLbp
+from tr_utils.useful import resize_to_fixed_d, remove_imperfections_adv
+from tr_utils.parameters import *
+
+from files.files_handler import get_file_abs_path
 
 
-def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed"):
+def describe_data(descriptor: DescriptorInterface, dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed", output_file='data.npy', draw= True):
     #session = new_session()
     #
     # rawFolderStr = '/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/raw'
@@ -40,7 +39,8 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
 
     all = Path(dataset_path).glob('**/*.png')
     l = len(list(all))
-    dim = LocalBinaryPatterns().compute_dim(P, method)
+    #dim = LocalBinaryPatterns().compute_dim(P, method)
+    dim, dims = descriptor.get_dim()#TODO
 
     X = np.empty((l, dim))
     Y = np.empty(l)
@@ -69,24 +69,27 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 #Carica l'immagine nei 4 canali
                 input = cv.imread(input_path, cv.IMREAD_UNCHANGED)
 
+                print(f'Analisi immagine: {file.stem}')
+
                 print('Original Dimensions : ', input.shape)
 
 
-                width = 500
-                height = int(width * (input.shape[0]/input.shape[1]))
-                #TODO scala a larghezza fissa
-                scale_percent = 50  # percent of original size
-                #width = int(input.shape[1] * scale_percent / 100)
-                #height = int(input.shape[0] * scale_percent / 100)
-                dim = (width, height)
+                # width = 500
+                # height = int(width * (input.shape[0]/input.shape[1]))
+                # #TODO scala a larghezza fissa
+                # scale_percent = 50  # percent of original size
+                # #width = int(input.shape[1] * scale_percent / 100)
+                # #height = int(input.shape[0] * scale_percent / 100)
+                # dim = (width, height)
+                #
+                # # resize image
+                # input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
-                # resize image
-                input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
                 # input_min = resize_to_fixed_d(input, 64)
                 # _, _, _, Amin = cv.split(input_min)
 
-                print('Resized Dimensions : ', input.shape)
+
 
                 B, G, R, A = cv.split(input)
                 #cv.imshow('RED {}, {}'.format(i, category), R)
@@ -95,9 +98,35 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 #Immagine binarizzata
                 binarized_bool = (A > 0).astype("uint8")
 
+                is_searched_file = file.stem == 'IMG_6821.out'
                 #Rimuovi le imperfezioni (open e close) e estrai solo la regione connessa più grande
-                binarized_bool = remove_imperfections(binarized_bool)
-                binarized_bool = remove_small_objects(binarized_bool)
+
+
+                if is_searched_file:
+                    cv.imshow(f'original mask {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+                # remove small objects per escludere gi eventuali oggetti separati
+                # e prima della resize per pulire l'immagine con più precisione
+
+                # binarized_bool = remove_small_objects(binarized_bool)
+                #
+                # if is_searched_file:
+                #     cv.imshow(f'mask without small obj {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+                binarized_bool = remove_imperfections_adv(binarized_bool)
+                if is_searched_file:
+                    cv.imshow(f'mask without imperfections {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+
+
+
+                binarized_bool = resize_to_fixed_d(binarized_bool, d)
+
+                if is_searched_file:
+                    cv.imshow(f'mask resized {file.stem}, {category}', binarized_bool.astype("uint8") * 255)
+
+
+                print('Resized bool Dimensions : ', binarized_bool.shape)
 
                 area = np.count_nonzero(binarized_bool)
                 print("Area: {}".format(area))
@@ -106,15 +135,17 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
                 binarized_bool = binarized_bool.astype("bool")
 
 
-                lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
-
-                print("Radius: {}".format(lbpDescriptor.radius))
-                lbp = lbpDescriptor.describe(binarized, binarized_bool)
+                # lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
+                #
+                #
+                # desc = lbpDescriptor.describe(binarized, binarized_bool)
                 # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
+
+                desc = descriptor.describe(binarized, binarized_bool, area, file.stem, draw=draw)
 
                 #print("ciao")
 
-                X[element_index] = lbp
+                X[element_index] = desc.reshape(-1)
                 Y[element_index] = category_index
                 names[element_index] = file.stem
 
@@ -124,17 +155,18 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
 
 
 
-                cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
-                element_index+=1
+                #cv.imshow('maschera {}, {}'.format(element_index, category), binarized)
+                element_index   +=1
             category_index += 1
-    data = np.empty(5, dtype=object)
+    data = np.empty(6, dtype=object)
     data[0] = X
     data[1] = Y
     data[2] = names
-    data[3] = np.array([category_legend])
+    data[3] = np.array([category_legend]) #TODO togli parentesi quadrate
     data[4] = images
-    # save to csv file
-    np.save('data.npy', data)
+    data[5] = np.array(dims)
+    # save to  file
+    np.save(output_file, data)
 
 
 
@@ -148,10 +180,20 @@ def prepare_data(dataset_path="/Users/michelevannucci/PycharmProjects/ToolsRecog
             # print('generata ' + imgName)
 
 
-prepare_data()
-cv.waitKey(0)
+if __name__ == '__main__':
+    print("esecuzione di describe_data.py")
 
-sys.exit()
+    hu = CallableHu()
+    lbp = CallableLbp(P = P, method=method)
+    output_file = get_file_abs_path('hu_data.npy')
+
+    describe_data(hu, output_file=output_file)
+
+#prepare_models()
+
+
+
+    sys.exit()
 #TODO numero iterazioni open e close proporzionale alla definizione dell'immagine
 #TODO resize per normalizzare?
 # In caso farlo nello script bg_remover
