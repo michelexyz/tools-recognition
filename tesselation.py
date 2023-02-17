@@ -1,51 +1,56 @@
+import cv2 as cv
+
 from tr_utils.useful import *
 
 
-# divide the input image in sub-regions
-def tassellamela(img, step, dim, descriptor_funct=None):
+# divides the input image in sub-regions and describes them with the passed function
+def tassella_e_descrivi(img, step, dim, descriptor_funct=None):
 
+    # tassello number
     num = 0
+
+    # img dimensions
     width = img.shape[1]
-    hight = img.shape[0]
+    height = img.shape[0]
 
-    # calcuating taxel matrix dimensions
-    rows_n = (hight-dim) // step
-    columns_n = (width-dim) // step
-    print('numero colonne: ' + str(columns_n) + 'numero righe: ' + str(rows_n))
-    descriptors = np.zeros((rows_n + 1, columns_n + 1), dtype=np.ndarray)
+    # computing taxels img dimensions
+    rows_n = ((height-dim) // step) + 1
+    columns_n = ((width-dim) // step) + 1
 
-    # indexes for accessing 'descriptors' matrix
-    a = 0
-    b = 0
+    descripted_img_size = rows_n * columns_n
+    print('michele gay')
+    # print('numero colonne: ' + str(columns_n) + 'numero righe: ' + str(rows_n))
+    print('array creato')
+    descripted_img = np.empty((descripted_img_size,5), dtype=np.float32)
+
 
     # iterating over image
-    for i in range(0, hight-dim+1, step):
+    for i in range(0, height-(dim+1), step):
 
-        for j in range(0, width-dim+1, step):
+        for j in range(0, width-(dim+1), step):
 
             point = (j, i)
             roi = extract_roi(img, point, dim, dim)
+            print('tassello numero ' + str(num) + ' estratto')
 
             # applico il descrittore al tassello (ROI)
             # but only if the function is not None
             if descriptor_funct is not None:
-                descripted_roi = descriptor_funct(roi, num)
+                descripted_roi = descriptor_funct(roi)
+                print('tassello numero '+str(num)+' descripted')
             else:
                 # ATTENTION! in this case, the roi is not beeing descripted despite its name
                 descripted_roi = roi
+                print('ooh va che non stai descrivendo niente fratello')
 
-            # put the computed (descripted) roi in descriptors matrix
-            descriptors[a][b] = descripted_roi
+            # put the computed (descripted) roi in descripted_img matrix
+            descripted_img[num] = descripted_roi
 
             # resize_and_show('roi numero ' + str(num), roi, 190)
-            print('tassello numero ' + str(num))
 
             num += 1
-            b += 1
 
-        b = 0
-        a += 1
-    return descriptors
+    return descripted_img
 
 
 # example function, writes a number on an image

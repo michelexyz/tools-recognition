@@ -20,15 +20,15 @@ def kmeans_quantization(img, classes):
 
     return quantized
 
-image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/some_tools_dalmata_bg.jpg')
-
-
-quant = kmeans_quantization(image, 4)
-resize_and_show('quantizzata', quant, 40)
-
-path = 'C:/Users/glauc/OneDrive/Desktop/UNI/elaborazione immagini digitali/output/quantized'
-cv.imwrite(os.path.join(path, 'quant4.jpg'), quant)
-
-
-cv.waitKey(0)
-cv.destroyAllWindows()
+# image = cv.imread('C:/Users/glauc/PycharmProjects/tools-recognition/data/some_tools_dalmata_bg.jpg')
+#
+#
+# quant = kmeans_quantization(image, 4)
+# resize_and_show('quantizzata', quant, 40)
+#
+# # path = 'C:/Users/glauc/OneDrive/Desktop/UNI/elaborazione immagini digitali/output/quantized'
+# # cv.imwrite(os.path.join(path, 'quant4.jpg'), quant)
+#
+#
+# cv.waitKey(0)
+# cv.destroyAllWindows()
