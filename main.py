@@ -122,17 +122,17 @@ train_str = 'train'
 detect_str = 'detect'
 
 
-default_pipe = [ category_an_str, train_str, detect_str]
+default_pipe = [category_an_str, train_str, detect_str]
 
 #pipe_line = [describe_str]
 
-pipe_line = default_pipe
+#pipe_line = default_pipe
 
 #pipe_line = [scale_str, train_str, detect_str]
 
 #pipe_line = [train_str, detect_str]
 
-#pipe_line = [detect_str]
+pipe_line = [detect_str]
 
 # feature_extracted = False
 
@@ -148,11 +148,16 @@ if scale_str in pipe_line:
     with_scaled_data = True
 
 
+im_name = 'IMG_7158.jpeg'
+im_name = 'IMG_7084.jpeg'
+
+
+
 dataset_path = str(get_processed_path())
 
 bg_path = str(get_data_folder('backgrounds').joinpath('green', 'green.jpg').resolve())
 
-im_path = str(get_data_folder('multiple_objects').joinpath('tools.jpg').resolve())
+im_path = str(get_data_folder('multiple_objects').joinpath(im_name).resolve())
 
 op_num = 1
 
