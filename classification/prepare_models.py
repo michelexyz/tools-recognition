@@ -15,8 +15,8 @@ def prepare_models(descriptors_file='data.npy', output_file='cl1.npy'):
     file_names = data[2]
     category_legend = data[3]
 
-
-    m = Models(X, Y, file_names, category_legend)
+    #cat = category_legend[0].reshape(-1)
+    m = Models(X, Y, file_names, category_legend[0].reshape(-1))
     m.train_and_test()
     m.train()
     #m.train_with_fold(fold=1)
@@ -38,8 +38,8 @@ def prepare_models(descriptors_file='data.npy', output_file='cl1.npy'):
 if __name__ == '__main__':
     print("esecuzione di prepare_models.py")
 
-    desc_file = get_file_abs_path('data.npy')
-    output_file = get_file_abs_path('cl1.npy')
+    desc_file = str(get_file_abs_path('data.npy'))
+    output_file = str(get_file_abs_path('cl1.npy'))
 
     prepare_models(desc_file, output_file)
     sys.exit()
