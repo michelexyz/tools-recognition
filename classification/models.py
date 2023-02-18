@@ -290,7 +290,16 @@ class Models:
                 # else:
                 #     return self.predict(X_train, range(len(self.classifiers)))
                 # print("=" * 30)
+    def predict_array(self,c_indices, samples):
+        c_indices = np.array(c_indices)
+        n_classifiers = c_indices.shape[0]
+        n_samples = samples.shape[0]
+        predicitions = np.empty(n_classifiers, n_samples)
+        for i, clf in enumerate(np.array(self.classifiers, dtype=object)[c_indices]):
+            predicitions[i] = clf.predict(samples)
 
+        return predicitions
+    # TODO concert X tu np:darray
     def predict(self, c_indices, X):
         l = len(X)
         if l == 1:
@@ -310,6 +319,7 @@ class Models:
         else:
             raise Exception("'predict' takes only an array of shape(1,) as X,"
                             "shape given: {} ".format(l))
+
 
     def predict_proba(self, c_indices, X):
         l = len(X)
