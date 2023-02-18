@@ -82,8 +82,8 @@ def describe_data(descriptor: DescriptorInterface, dataset_path_str="/Users/mich
 
 
 
-                    area = np.count_nonzero(binarized_bool)
-                    print("Area: {}".format(area))
+                    #area = np.count_nonzero(binarized_bool)
+                    #print("Area: {}".format(area))
 
 
                     # lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
@@ -92,7 +92,7 @@ def describe_data(descriptor: DescriptorInterface, dataset_path_str="/Users/mich
                     # desc = lbpDescriptor.describe(binarized, binarized_bool)
                     # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
-                    desc = descriptor.describe(binarized, binarized_bool, area, file.stem, draw=draw)
+                    desc = descriptor.describe(binarized, binarized_bool,name=file.stem, draw=draw)
 
                     #print("ciao")
 

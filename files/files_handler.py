@@ -42,7 +42,7 @@ def get_file_abs_path(file_name):
 def get_abs_path(folder_name, file_name):
     return parent_folder.joinpath(folder_name,file_name).resolve()
 
-def get_dataset_path():
+def get_processed_path():
     return processed_path.resolve()
 
 def get_data_folder(folder):

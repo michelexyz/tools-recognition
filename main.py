@@ -1,9 +1,10 @@
-import os
 import sys
 
 import cv2 as cv
 
-from analize_data import analize_data
+from descripted_data_analysis.category_description_analysis import category_dsc_analysis
+from descripted_data_analysis.compute_mean import load_mean_and_std
+from descripted_data_analysis.feature_extraction import analize_data
 from descriptors import DescriptorCombiner
 from descriptors.shape_descriptors import CallableHu
 from descriptors.texture_descriptors import CallableLbp
@@ -17,7 +18,7 @@ from scale_data import scale_data
 from tr_utils import parameters
 from classification.prepare_models import prepare_models
 
-from files.files_handler import get_file_abs_path, get_dataset_path, get_data_folder
+from files.files_handler import get_file_abs_path, get_processed_path, get_data_folder
 
 # import cv2 as cv
 # import os
@@ -114,13 +115,14 @@ descriptor = DescriptorCombiner([hu, lbp], [5,1])
 
 
 describe_str = 'describe'
+category_an_str = 'category_an'
 scale_str = 'scale'
-analize_str = 'analyze'
+extract_str = 'analyze'
 train_str = 'train'
 detect_str = 'detect'
 
 
-default_pipe = [describe_str, scale_str, train_str, detect_str]
+default_pipe = [ category_an_str, train_str, detect_str]
 
 #pipe_line = [describe_str]
 
@@ -130,23 +132,23 @@ pipe_line = default_pipe
 
 #pipe_line = [train_str, detect_str]
 
-pipe_line = [detect_str]
+#pipe_line = [detect_str]
 
 # feature_extracted = False
 
 f_extraction_data = None
 scaling_data = None
 with_extracted_data = False
-with_scaled_data = True
+with_scaled_data = False
 
-if analize_str in pipe_line:
+if extract_str in pipe_line:
     with_extracted_data = True
 
 if scale_str in pipe_line:
     with_scaled_data = True
 
 
-dataset_path = str(get_dataset_path())
+dataset_path = str(get_processed_path())
 
 bg_path = str(get_data_folder('backgrounds').joinpath('green', 'green.jpg').resolve())
 
@@ -177,13 +179,18 @@ if describe_str in pipe_line:
     op_num += 1
 
     # DESCRIVE LE IMMAGINI E SALVA I DATI SU FILE
-    describe_data(descriptor, dataset_path=dataset_path, output_file=described_path, draw=draw_dataset)
+    describe_data(descriptor, dataset_path_str=dataset_path, output_file=described_path, draw=draw_dataset)
+
+if category_an_str in pipe_line:
+
+    load_mean_and_std(described_path, descriptor)
+    category_dsc_analysis(described_path, descriptor)
 
 if scale_str in pipe_line:
 
     scale_data(described_path, scaled_path, scale_path, weights=descriptor.weights)
 
-if analize_str in pipe_line:
+if extract_str in pipe_line:
     print(f"Operazione {op_num}: ANALISI DEI DATI E FEATURE EXTRACION")
     op_num += 1
 
