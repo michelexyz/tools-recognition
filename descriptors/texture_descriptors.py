@@ -291,6 +291,35 @@ class LocalBinaryPatterns:
         # return the histogram of Local Binary Patterns
         return h_masked
 
+    #def draw_intermediate
+
+    def draw_tabular(self, images, categories, means, stds):
+        f, axis = plt.subplots(images.shape[0], 3,figsize=( int(3*2.7), images.shape[0]*2))
+        f.suptitle('Media e varianza LBP')
+        for i, row in enumerate(axis):
+            row[0].imshow(images[i], cmap=plt.cm.gray)
+            row[0].axis('off')
+            row[0].set_title(categories[i])
+            row[1].plot(means[i])
+            row[1].axis('off')
+
+            row[2].plot(stds[i])
+            row[2].axis('off')
+
+            #Draws titles only for the firs
+            if i == 0:
+                row[1].set_title('mean')
+                row[2].set_title('stds')
+        plt.show()
+
+    #Disegna le descrizioni complete di oggetti e mas
+    #def draw_complete
+
+
+
+
+
+
 
 class find_r_mode(Enum):
     AREA = "ar"
@@ -338,9 +367,10 @@ class CallableLbp(DescriptorInterface):
         self.method = method
         self.dim = LocalBinaryPatterns().compute_dim(self.P, self.method)
 
-    def describe(self, componentMask, componentMaskBool, area, name, draw=True):
+    def describe(self, componentMask, componentMaskBool, name = 'Default lbp name', draw = False):
         """Overrides DescriptorInterface.describe()"""
-
+        area = np.count_nonzero(componentMaskBool)
+        print(f"Area {name}: {area}")
         lbpDescriptor = parametric_lbp(self.P, method=self.method, area=area)
         lbp = lbpDescriptor.describe(componentMask, componentMaskBool, name=name, draw=draw)
         return lbp
@@ -349,6 +379,23 @@ class CallableLbp(DescriptorInterface):
         """Overrides DescriptorInterface.get_dim()"""
 
         return self.dim, [self.dim]
+
+    def draw_tabular(self, samples, means=None, stds=None):
+        n_samples = samples.shape[0]
+        masks = np.empty(n_samples, dtype=object)
+        categories = np.empty(n_samples, dtype=object)
+        for i, sample in enumerate(samples):
+            (binarized, binarized_bool, masked, category) = sample
+            masks[i] = binarized
+            categories[i] = category
+        LocalBinaryPatterns().draw_tabular(masks, categories,means, stds)
+
+
+    def draw_samples(self, samples):
+        n_samples = samples.shape[0]
+        for i, sample in enumerate(samples):
+            (binarized, binarized_bool, masked, category) = sample
+            self.describe(binarized,  binarized_bool, name=category, draw=True)
 
 
 def find_r(width=500, area=250000, mode=find_r_mode.WIDTH, mult=0.2, d=5):  # TODO tune mult and d

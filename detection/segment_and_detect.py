@@ -142,9 +142,11 @@ def segment_and_detect(image, obj_thresh, m, descriptor, transformation_data = N
                 obj_name = f'obj {new_num_labels}'
 
                 if apply_on_mask:
-                    description = descriptor.describe(componentMask, componentMaskBool.astype("bool"), area, name = obj_name, draw=draw)
+                    description = descriptor.describe(componentMask, componentMaskBool.astype("bool"), name=obj_name,
+                                                      draw=draw)
                 else:
-                    description = descriptor.describe(masked, componentMaskBool.astype("bool"), area, name = obj_name, draw=draw)
+                    description = descriptor.describe(masked, componentMaskBool.astype("bool"), name=obj_name,
+                                                      draw=draw)
 
 
                 scale_data, f_extraction_data = transformation_data

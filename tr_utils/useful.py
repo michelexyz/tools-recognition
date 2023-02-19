@@ -110,7 +110,7 @@ def remove_small_objects(binarized_image):
 
     return componentMaskBool.astype("uint8")
 
-def remove_imperfections_adv(binarized_image, factor_close = 160, factor_open=160):
+def remove_imperfections_adv(binarized_image, image, factor_close = 160, factor_open=160):
     area = np.count_nonzero(binarized_image)
     it_open= find_n_iterations(area, factor_open)
     it_close = find_n_iterations(area, factor_close)
@@ -157,7 +157,7 @@ def remove_imperfections_adv(binarized_image, factor_close = 160, factor_open=16
     componentMaskBool = open_close(componentMaskBool, 'open', 3, er_it=0, dil_it=it_open)
     componentMaskBool = open_close(componentMaskBool, 'close', 3, er_it=it_close, dil_it=it_close)
 
-    return componentMaskBool
+    return componentMaskBool, image[y:y + h, x:x + w]
 
 def remove_imperfections(binarized_image, factor_close = 160, factor_open=160):
     # h = binarized_image.shape[0]

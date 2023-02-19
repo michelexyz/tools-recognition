@@ -1,4 +1,5 @@
 import abc
+import time
 
 import numpy as np
 
@@ -13,7 +14,7 @@ class DescriptorInterface(metaclass=abc.ABCMeta):
                 NotImplemented)
 
     @abc.abstractmethod
-    def describe(self, componentMask, componentMaskBool, area, name, draw):
+    def describe(self, componentMask, componentMaskBool, name, draw):
         """Load in the data set"""
         raise NotImplementedError
 
@@ -21,6 +22,8 @@ class DescriptorInterface(metaclass=abc.ABCMeta):
     def get_dim(self):
         """Extract text from the data set"""
         raise NotImplementedError
+
+
 
 class DescriptorCombiner(DescriptorInterface):
     def __init__(self, descriptors: list, weights:list = None):
@@ -32,11 +35,11 @@ class DescriptorCombiner(DescriptorInterface):
         if len(weights) != len(descriptors):
             raise ("number of weights given doesn't match number of descriptors")
 
-    def describe(self, componentMask, componentMaskBool, area, name, draw = True):
+    def describe(self, componentMask, componentMaskBool, name, draw = True):
         """Overrides DescriptorInterface.describe()"""
         descriptions = []
         for dsc in self.descriptors:
-            descriptions.append(dsc.describe(componentMask, componentMaskBool, area, name= name, draw=draw))
+            descriptions.append(dsc.describe(componentMask, componentMaskBool, name=name, draw=draw))
 
         return np.concatenate(descriptions)
 
@@ -44,6 +47,23 @@ class DescriptorCombiner(DescriptorInterface):
         """Overrides DescriptorInterface.get_dim()"""
 
         return self.dim, self.dims
+
+    #TODO far si che i draw funzionino anche per i singoli descrittori
+    def draw_tabular(self, samples, means=None, stds=None):
+        for i, dsc in enumerate(self.descriptors):
+            print(f'Tabelle descrittore {dsc.__class__.__name__}')
+            dsc.draw_tabular(samples, means[i], stds[i])
+            # Waiting for pycharm plotting delay
+            print("WAITING 3 SECONDS")
+            time.sleep(3)
+
+    def draw_samples(self, samples):
+        for dsc in self.descriptors:
+            print(f'Disegno sample per descrittore {dsc.__class__.__name__}')
+            dsc.draw_samples(samples)
+            # Waiting for pycharm plotting delay
+            print("WAITING 3 SECONDS")
+            time.sleep(3)
 
     def compute_dim(self):
         dim = 0

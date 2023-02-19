@@ -22,15 +22,39 @@ class CallableHu(DescriptorInterface):
         #self.draw = draw
         self.dim = dim
 
-    def describe(self, componentMask, componentMaskBool, area, name, draw= True):
+    def describe(self, componentMask, componentMaskBool=None, name='Default Hu name', draw= True):
         """Overrides DescriptorInterface.describe()"""
 
-        return hu_moments(componentMask, draw=draw,  name=name)
+        return hu_moments(componentMask, draw=draw, name=name)
 
 
     def get_dim(self):
         """Overrides DescriptorInterface.get_dim()"""
         return self.dim, [self.dim]
+
+
+    # Descriptions can be specified in case we want to pass a mean description for example
+    def draw_tabular(self, samples, means = None, stds = None):
+        n_samples = samples.shape[0]
+        masks = np.empty(n_samples, dtype=object)
+        categories = np.empty(n_samples, dtype=object)
+        for i, sample in enumerate(samples):
+            (binarized, binarized_bool, masked, category) = sample
+            masks[i] = binarized
+            categories[i] = category
+        if not(means is None ):
+            plot_moments(masks, categories,title='media', moments=means)
+
+        if not(stds is None):
+            plot_moments(masks, categories,title='deviazione std', moments=stds)
+        elif means is None:#Default case where both means and sts are None
+            plot_moments(masks, categories, moments=None)
+    def draw_samples(self, samples):
+        n_samples = samples.shape[0]
+        for i, sample in enumerate(samples):
+            (binarized, binarized_bool, masked, category) = sample
+            self.describe(binarized, name = category, draw = True)
+
 
 
 def hu_fun(componentMask, componentMaskBool, area):
@@ -80,7 +104,7 @@ def hu_moments(im, draw=False,name = 'Default name'):
 
 
 # TODO aggiungi colonne di diverso colore
-def plot_moments(images, names):
+def plot_moments(images, names, title = '', moments = None):
     # # make this example reproducible
     # np.random.seed(0)
     #
@@ -104,7 +128,7 @@ def plot_moments(images, names):
     # plt.show()
 
     # first, we'll create a new figure and axis object
-    fig, ax = plt.subplots(figsize=(10, 12))
+    fig, ax = plt.subplots(figsize=(12, int(images.shape[0]*1.3)))
 
     # set the number of rows and cols for our table
     rows = images.shape[0]
@@ -127,7 +151,7 @@ def plot_moments(images, names):
 
     # TITLE
     ax.set_title(
-        'Hu moments',
+        f'Hu moments {title}',
         loc='left',
         fontsize=18,
         weight='bold'
@@ -149,8 +173,10 @@ def plot_moments(images, names):
 
     # DRAW DATA ON EVERY ROW
     for row in range(rows):
-
-        h = hu_moments(images[row])
+        if moments is None:
+            h = hu_moments(images[row])
+        else:
+            h = moments[row]
 
         # draw the name of the image
         ax.text(x=0, y=row, s=names[row], va='center', ha='left', fontsize=font_size)
@@ -181,9 +207,10 @@ def plot_moments(images, names):
 
         # this is probably the most fiddly aspect (TODO: some neater way to automate this)
         newaxes.append(
-            fig.add_axes([.22, .725 - (row * .064), .12, .06])
+            fig.add_axes([.24, .735 - (row * (.658/rows)), 1.2/rows, .6/rows])
         )
-
+    # Flips to meach data in rows
+    images = np.flip(images)
     for i, ax in enumerate(newaxes):
         ax.imshow(images[i], cmap=plt.cm.gray)
         ax.axis('off')
@@ -201,6 +228,7 @@ def plot_moments(images, names):
         # # assists column
         #
         # ax.text(x=5, y=row, s=d['assists'], va='center', ha='right')
+
     plt.show()
 
 if __name__ == '__main__':

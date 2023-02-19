@@ -364,7 +364,7 @@ def detect_objects(image, bg, bgClassifier=None, objClassifier=None):
                 # resize image
                 #input = cv.resize(input, dim, interpolation=cv.INTER_AREA)
 
-                lbp = lbpDescriptor.describe(componentMask, componentMaskBool.astype("bool"))
+                lbp = lbpDescriptor.describe(componentMask, componentMaskBool.astype("bool"),,
                 # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
                 #Eseguo la predizione
