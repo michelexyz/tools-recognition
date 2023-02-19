@@ -35,11 +35,11 @@ def detect_objects(image, bg, descriptor, obj_classifier=None, bgClassifier=None
 
 # DONE trova altro modo per normalizzare luce(con gamma)
 # DONE slider con precisione floating point
-# TODO 0 rendi tutto una funzione, in particolare ogni layer della pipeline
+# DONE 0 rendi tutto una funzione, in particolare ogni layer della pipeline
 # TODO 0 funzione per capire quile file sono previsti in modo sbagliato nel test
 
 # TODO implementa la possibbilità di aggiungere più immagini di bg
-# TODO? implementa l'informazione sugli oggetti
+# DONE implementa l'informazione sugli oggetti
 # TODO rumore gaussiano
 # TODO sperimentare con altri spazi colore
 
@@ -47,22 +47,22 @@ def detect_objects(image, bg, descriptor, obj_classifier=None, bgClassifier=None
 # TODO Funzione che divide immagine in tasselli
 # TODO Altri descrittori
 
-# TODO LBP e corner detection con istogrammi
-# TODO Segmentazione
-# TODO Guarda scala
+# DONE LBP e corner detection con istogrammi
+# DONE Segmentazione
+# DONE Guarda scala
 
-# TODO shape detection con humoments
+# DONE shape detection con humoments
 # TODO skeleton
 # TODO sottrai
 # TODO regioni convesse e simmetriche
 
-# TODO Classificazione
+# DONE Classificazione
 
-# TODO pulisci dati
+# DONE pulisci dati
 # DONE prendi 5 migliori previsioni con pesi
 # TODO min rect e Moemnti
 # TODO vedi la dimensione giusta dell'lbp ror
-# TODO approsimazione int open-close
+# DONE approsimazione int open-close
 
 
 

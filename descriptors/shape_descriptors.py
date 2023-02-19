@@ -105,27 +105,6 @@ def hu_moments(im, draw=False,name = 'Default name'):
 
 # TODO aggiungi colonne di diverso colore
 def plot_moments(images, names, title = '', moments = None):
-    # # make this example reproducible
-    # np.random.seed(0)
-    #
-    # # define figure and axes
-    # fig, ax = plt.subplots()
-    #
-    # # hide the axes
-    # fig.patch.set_visible(False)
-    # ax.axis('off')
-    # ax.axis('tight')
-    #
-    # # create data
-    # df = pd.DataFrame(np.random.randn(20, 2), columns=['First', 'Second'])
-    # df.iloc[1][1] = cv.imread('/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/tools.jpg')
-    #
-    # # create table
-    # table = ax.table(cellText=df.values, colLabels=df.columns, loc='center')
-    #
-    # # display table
-    # fig.tight_layout()
-    # plt.show()
 
     # first, we'll create a new figure and axis object
     fig, ax = plt.subplots(figsize=(12, int(images.shape[0]*1.3)))
@@ -215,19 +194,6 @@ def plot_moments(images, names, title = '', moments = None):
         ax.imshow(images[i], cmap=plt.cm.gray)
         ax.axis('off')
 
-        # ax.text(x=.5, y=row, s=h, va='center', ha='left')
-        # # shots column - this is my "main" column, hence bold text
-        #
-        # #ax.text(x=2, y=row, s=h, va='center', ha='right', weight='bold')
-        # # passes column
-        #
-        # ax.text(x=3, y=row, s=d['passes'], va='center', ha='right')
-        # # goals column
-        #
-        # ax.text(x=4, y=row, s=d['goals'], va='center', ha='right')
-        # # assists column
-        #
-        # ax.text(x=5, y=row, s=d['assists'], va='center', ha='right')
 
     plt.show()
 
@@ -236,7 +202,7 @@ if __name__ == '__main__':
     names = np.empty(10, dtype=object)
 
     for i in range(10):
-        images[i] = cv.imread('/Users/michelevannucci/PycharmProjects/ToolsRecognition/no_bg.jpg', cv.IMREAD_GRAYSCALE)
+        # images[i] = cv.imread('/Users/michelevannucci/PycharmProjects/ToolsRecognition/no_bg.jpg', cv.IMREAD_GRAYSCALE) TODO replace path
         names[i] = 'test'
     plot_moments(images, names)
     hu_moments(images[0], draw=True)

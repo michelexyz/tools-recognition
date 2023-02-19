@@ -273,23 +273,16 @@ class Models:
             print(name + ' trained with subset')
             print("=" * 30)
 
-    def train_with_fold(self, fold, n_splits=3, test_size=0.2, random_state=23, use_best=True, n_best=5):
+    def train_with_fold(self, fold, n_splits=3, test_size=0.2, random_state=23):
 
         sss = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
 
         for i, (train_index, _) in enumerate(sss.split(self.X, self.labels)):
             if i == fold:
-                # print(f"Fold {i}:")
-                # print(f"  Train: index={train_index}")
-                # print(f"  Test:  index={test_index}")
 
                 self.train_with_subset(train_index)
 
-                # if use_best:
-                #     return self.predict_with_best_n( x, n_best)
-                # else:
-                #     return self.predict(X_train, range(len(self.classifiers)))
-                # print("=" * 30)
+
     def predict_array(self,c_indices, samples):
         c_indices = np.array(c_indices)
         n_classifiers = c_indices.shape[0]
@@ -520,34 +513,4 @@ class Models:
 
         return ids
 
-#
-#
-# data = np.load('data.npy', allow_pickle=True)
-#
-#
-# X = data[0]
-# labels = data[1]
-# file_names = data[2]
-# category_legend = data[3]
-#
-#
-# m = Models(X, labels, file_names, category_legend)
-# m.train_and_test()
-# m.train()
-# display(m.predict_with_best_n([X[0]], 5))
-# # name ='cl1'
-# #
-# # with open(f'{name}.pkl', 'wb') as file:
-# #     # Step 3
-# #     pickle.dump(m, file, pickle.HIGHEST_PROTOCOL)
-# #
-# # ofile = open("BinaryData", "wb")
-# # dill.dump(m, ofile)
-# # ofile.close()
-#
-# #my_pickled_object = pickle.dumps(m)  # Pickling the object
-#
-# #display(m.predict_with_fold([X[0]], 2))
-# print(category_legend[0][0])
-#
-# exit(0)
+

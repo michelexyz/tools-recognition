@@ -32,7 +32,6 @@ def prepare_models(descriptors_file='data.npy', output_file='cl1.npy'):
     trained[0] = m
 
     np.save(output_file, trained)
-    print("BELLLLAAAAAAAAA")
 
 
 if __name__ == '__main__':

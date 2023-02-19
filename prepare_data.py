@@ -14,60 +14,35 @@ from tr_utils.parameters import *
 from files.files_handler import get_file_abs_path
 
 
-def describe_data(descriptor: DescriptorInterface, dataset_path_str="/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed", output_file='data.npy', draw= True):
-    #session = new_session()
-    #
-    # rawFolderStr = '/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/raw'
-    # rawFolder = Path(rawFolderStr)
-    # #processedFolderStr = str(rawFolder.parent / 'processed')
-    # processedFolderStr = '/Users/michelevannucci/PycharmProjects/ToolsRecognition/data/processed'
+def describe_data(descriptor: DescriptorInterface, dataset_path_str, output_file='data.npy', draw= True):
 
-    # for filename in os.listdir(processedFolderStr):
-    #     file_path = os.path.join(processedFolderStr, filename)
-    #     try:
-    #         if os.path.isfile(file_path) or os.path.islink(file_path):
-    #             os.unlink(file_path)
-    #         elif os.path.isdir(file_path):
-    #             shutil.rmtree(file_path)
-    #     except Exception as e:
-    #         print('Failed to delete %s. Reason: %s' % (file_path, e))
-    # print('file eliminati')
-    print('ciao')
-    print('1')
-    print('2')
-    print('3')
 
     dataset_path = Path(dataset_path_str)
-    # Finds all the fles in the dataset folder
+    # Finds all the files in the dataset folder
     search_path = Path('**')/'*.png'
     all = dataset_path.glob(str(search_path))
     # Counts them
     n_samples = len(list(all))
-    #dim = LocalBinaryPatterns().compute_dim(P, method)
+    # dim = LocalBinaryPatterns().compute_dim(P, method)
     dim, dims = descriptor.get_dim()#TODO
 
+    # Allocate memory for data to be saved
     data = np.empty(8, dtype=object)
     X = np.empty((n_samples, dim))
     Y = np.empty(n_samples)
-    names = np.empty(n_samples, dtype=object)
+    file_names = np.empty(n_samples, dtype=object) # Names of sample files
     category_legend = []
-    images = np.empty(n_samples, dtype=object)
+    images = np.empty(n_samples, dtype=object)# Image previews of samples
     sample_per_category = []
 
     category_index = 0
     element_index = 0
-    debug = os.listdir(dataset_path_str)
 
+    # Iterates on every category folder
     for categoryPath in dataset_path.iterdir():
-        # categoryPathStr = dataset_path_str + '/' + category
-        # categoryPath = Path(categoryPathStr)
-
-        #categoryPath = dataset_path / category
         if categoryPath.is_dir():
             category = categoryPath.stem
-            #processedCategoryPathStr = processedFolderStr + '/' + category
-            #processedCategoryPath = Path(processedCategoryPathStr)
-            #processedCategoryPath.mkdir(parents=True, exist_ok=True)
+
             if category != '.DS_Store':
                 category_legend.append(category)
 
@@ -76,29 +51,17 @@ def describe_data(descriptor: DescriptorInterface, dataset_path_str="/Users/mich
                 for file in categoryPath.glob('*.png'):
                     print(f'Analisi immagine: {file.stem}')
 
+                    # Specifies a file for which to draw descriptors data
                     is_searched_file = file.stem == 'IMG_6821.out'
 
+                    #Extract binarized and rgb masks
                     binarized, binarized_bool, masked = extract_sample(str(file),file.stem, category,is_searched_file)
-
-
-
-                    #area = np.count_nonzero(binarized_bool)
-                    #print("Area: {}".format(area))
-
-
-                    # lbpDescriptor = parametric_lbp(P, method=method, area=area ,width = width)
-                    #
-                    #
-                    # desc = lbpDescriptor.describe(binarized, binarized_bool)
-                    # x.compute_lbp(componentMask, componentMaskBool.astype("bool"))
 
                     desc = descriptor.describe(binarized, binarized_bool,name=file.stem, draw=draw)
 
-                    #print("ciao")
-
                     X[element_index] = desc.reshape(-1)
                     Y[element_index] = category_index
-                    names[element_index] = file.stem
+                    file_names[element_index] = file.stem
 
                     binarized_min = resize_to_fixed_d(binarized, 64)
 
@@ -115,7 +78,7 @@ def describe_data(descriptor: DescriptorInterface, dataset_path_str="/Users/mich
 
     data[0] = X
     data[1] = Y
-    data[2] = names
+    data[2] = file_names
     data[3] = np.array([category_legend]) #TODO togli parentesi quadrate
     data[4] = images
     data[5] = np.array(dims)

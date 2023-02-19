@@ -66,15 +66,14 @@ def plotPCA(y, pts, images, title, legend=None):
 
 
 def PCAmapData(X, y, images, kernel='rbf', title='PCA', legend=None):
-    # mds = MDS(metric=metric, dissimilarity='precomputed', random_state=0)
+
+
     pca = KernelPCA(n_components=None, kernel=kernel)
 
     # Get the embeddings
     pts = pca.fit_transform(X)
 
-    # Print the stress value
-    # stress = mds.stress_
-    # print(f"stress value: {stress}")
+
 
     plotPCA(y, pts, images, title, legend)
 
@@ -214,9 +213,9 @@ def analize_data(descriptors_file='data.npy', output_file='data_extracted.npy',e
         dist_euclid = euclidean_distances(X)
 
         _, _ = mapData(dist_euclid, X, Y, images, True,
-                       'MDS', legend=category_legend)
+                       'PCA', legend=category_legend)
 
-        _, _ = PCAmapData(X, Y, images=images, legend=category_legend)
+        _, _ = PCAmapData(X, Y, images=images,title='KPCA', legend=category_legend)
 
         optimal_n = optimal_components_n(dist_euclid, 99)
 
@@ -244,8 +243,8 @@ def analize_data(descriptors_file='data.npy', output_file='data_extracted.npy',e
 
 if __name__ == '__main__':
 
-    data_file = get_file_abs_path('data.npy')
-    output_file = get_file_abs_path('data_extracted.npy')
-    extraction_file = get_file_abs_path('extraction_data.npy')
+    data_file = str(get_file_abs_path('data.npy'))
+    output_file = str(get_file_abs_path('data_extracted.npy'))
+    extraction_file = str(get_file_abs_path('extraction_data.npy'))
 
-    analize_data(data_file, output_file, extraction_file)
+    analize_data(data_file, output_file, extraction_file, draw=True)
