@@ -69,24 +69,19 @@ def tassella_e_descrivi_png(img_path, step, dim, num_features, descriptor_funct=
     binarized_bool = (A > 0).astype("uint8")
 
     # TRANSFORM OPERATIONS
-    # image is the biggest object, the rest has value
+    # image is an rgb image with only the biggest object, the rest has value 0
     binarized_bool, image = remove_imperfections_adv(binarized_bool, img_rgb)
 
-    # use 'image'
+    # use 'image' for description
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
     # img dimensions
-    width = img_png.shape[1]
-    height = img_png.shape[0]
+    width = gray.shape[1]
+    height = gray.shape[0]
 
-    # computing taxels 'img' dimensions
-    rows_n = ((height-dim) // step) + 1
-    columns_n = ((width-dim) // step) + 1
-
-    descripted_img_size = rows_n * columns_n
-    print('michele gay')
     # print('numero colonne: ' + str(columns_n) + 'numero righe: ' + str(rows_n))
-    print('array creato')
-    descripted_img = np.empty((descripted_img_size,num_features), dtype=np.float32)
-
+    descripted_img = []
+    print('lista creata')
 
     # iterating over image
     for i in range(0, height-(dim+1), step):
@@ -94,27 +89,70 @@ def tassella_e_descrivi_png(img_path, step, dim, num_features, descriptor_funct=
         for j in range(0, width-(dim+1), step):
 
             point = (j, i)
-            roi = extract_roi(img_png, point, dim, dim)
+            roi = extract_roi(gray, point, dim, dim)
             print('tassello numero ' + str(num) + ' estratto')
 
-            # applico il descrittore al tassello (ROI)
-            # but only if the function is not None
-            if descriptor_funct is not None:
-                descripted_roi = descriptor_funct(roi)
-                print('tassello numero '+str(num)+' descripted')
+            # descrivo il tassello SOLO se è accettabile
+            accettabile = good_tassello(roi)
+
+            if accettabile:
+                # applico il descrittore al tassello (ROI)
+                # but only if the function is not None
+                if descriptor_funct is not None:
+                    descripted_roi = descriptor_funct(roi)
+                    print(f'tassello numero {num} descripted')
+                else:
+                    # ATTENTION! in this case, the roi is not beeing descripted despite its name
+                    descripted_roi = roi
+                    print('ooh va che non stai descrivendo niente fratello')
+
+                # put the computed (descripted) roi in descripted_img list
+                descripted_img.append(descripted_roi)
+
+                # resize_and_show('roi numero ' + str(num), roi, 190)
+
             else:
-                # ATTENTION! in this case, the roi is not beeing descripted despite its name
-                descripted_roi = roi
-                print('ooh va che non stai descrivendo niente fratello')
-
-            # put the computed (descripted) roi in descripted_img matrix
-            descripted_img[num] = descripted_roi
-
-            # resize_and_show('roi numero ' + str(num), roi, 190)
+                # no good tassello: scartato
+                print(f'tassello numero {num} SCARTATO')
 
             num += 1
 
     return descripted_img
+
+
+# if there is too much black area, return false: not good tassello
+def good_tassello(tassello):
+    limit_black = 20
+    black_area = zero_pixel_number(tassello)
+
+    if black_area > limit_black:
+        # tassello ain't good enough
+        return False
+    else:
+        # tassello is good
+        return True
+
+def zero_pixel_number(img):
+
+    black_counter = 0
+    tot_counter = 0
+
+    height = img.shape[0]
+    width = img.shape[1]
+
+    # iterating on image
+    for i in range(0, height):
+        for j in range(0, width):
+
+            # check if is black
+            if img[j,i] == 0:
+                black_counter += 1
+            tot_counter += 1
+
+    # compute percentage
+    black_perc = int((black_counter / tot_counter) * 100)
+
+    return black_perc
 
 
 

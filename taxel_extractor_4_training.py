@@ -86,7 +86,7 @@ def bg_taxel_extractor(input_path, dim, step, descriptor):
         # salvo nell'indice giusto sta coppia che scoppia di (descrizione, label)
         backgrounds_descriptions[bg_type_index] = description_labelled
 
-        # incrementing bg type... e daaaje col prossimooooo
+        # incrementing bg type... e daaaje cor prossimooooo
         bg_type_index += 1
 
     return backgrounds_descriptions
@@ -104,14 +104,6 @@ def fg_taxel_extractor(input_path, dim, step, descriptor):
     n_samples = len(list(all))
     # dim = LocalBinaryPatterns().compute_dim(P, method)
     features_number = 2
-
-    data = np.empty(8, dtype=object)
-    X = np.empty((n_samples, dim))
-    Y = np.empty(n_samples)
-    names = np.empty(n_samples, dtype=object)
-    category_legend = []
-    images = np.empty(n_samples, dtype=object)
-    sample_per_category = []
 
     category_index = 0
     element_index = 0
@@ -139,10 +131,10 @@ def fg_taxel_extractor(input_path, dim, step, descriptor):
 
                     # tassello e descrivo i tools.png
                     if first_iteration:
-                        description = tassella_e_descrivi_png(file, step, dim, features_number, descriptor)
+                        description = tassella_e_descrivi_png(str(file), step, dim, features_number, descriptor)
                     else:
                         description = np.concatenate(
-                            (description, tassella_e_descrivi_png(file, step, dim, features_number, descriptor)))
+                            (description, tassella_e_descrivi_png(str(file), step, dim, features_number, descriptor)))
 
                     first_iteration = False
 
@@ -154,20 +146,30 @@ def fg_taxel_extractor(input_path, dim, step, descriptor):
     X = description
     Y = np.ones(x_length, dtype=int)
 
+    # creating tuple of [TASSELLO_DESCRIPTION, LABEL] (label is 1)
+    tools_descriptions = (X, Y)
+
+    return tools_descriptions
+
 
 # "MAIN"
 
 patch_size = 30
 step = 20
 
-folder_path = 'C:/Users/glauc/PycharmProjects/tools-recognition/data/only_background'
-bg_tasselli_descritti = bg_taxel_extractor(folder_path, patch_size, step, glcm_descriptor.glcm_descriptor)
+# BACKGROUND
+# folder_path = 'C:/Users/glauc/PycharmProjects/tools-recognition/data/only_background'
+# bg_tasselli_descritti = bg_taxel_extractor(folder_path, patch_size, step, glcm_descriptor.glcm_descriptor)
+
+# FOREGROUND
+folder_path = 'C:/Users/glauc/PycharmProjects/tools-recognition/data/processed'
+tools_tasselli_descritti = fg_taxel_extractor(folder_path, patch_size, step, glcm_descriptor.glcm_descriptor)
+
 
 save_bg_description = True
-# save description to file if 'a' is pressed
 
 if save_bg_description:
-    save_data_path = 'C:/Users/glauc/PycharmProjects/tools-recognition/files/bg_taxel_description/'
-    output_file = f'bg_taxel_descripted_glcm_patch{patch_size}_step{step}_big.npy'
-    np.save(save_data_path + output_file, bg_tasselli_descritti)
+    save_data_path = 'C:/Users/glauc/PycharmProjects/tools-recognition/files/tools_taxel_description/'
+    output_file = f'tools_taxel_descripted_glcm_patch{patch_size}_step{step}.npy'
+    np.save(save_data_path + output_file, tools_tasselli_descritti)
     print('descrizione salvata nel file')
