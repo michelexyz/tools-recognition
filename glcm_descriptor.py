@@ -61,7 +61,7 @@ def kmeans2_out(labels, img, step, patch_dim):
             # increment labels index "lab_i"
             lab_i += 1
 
-
+    # cv.imshow('diomado', img)
     return img
 
 
@@ -82,12 +82,13 @@ def glcm_descriptor(image):
     # calculating some properties for each tassello's GLCM
     diss_sim = (graycoprops(glcm, 'dissimilarity')[0, 0])
     corr = (graycoprops(glcm, 'correlation')[0, 0])
-    homogen = (graycoprops(glcm, 'homogeneity')[0, 0])
-    energy = (graycoprops(glcm, 'energy')[0, 0])
-    contrast = (graycoprops(glcm, 'contrast')[0, 0])
+    # homogen = (graycoprops(glcm, 'homogeneity')[0, 0])
+    # energy = (graycoprops(glcm, 'energy')[0, 0])
+    # contrast = (graycoprops(glcm, 'contrast')[0, 0])
 
     # print('gray co props computed for tassello num: ' + str(num))
 
-    features = [diss_sim, corr, homogen, energy, contrast]
+    # features = [diss_sim, corr, homogen, energy, contrast]
+    features = [diss_sim, corr]
 
     return np.array(features)

@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import cv2 as cv
-from useful import *
+from tr_utils.useful import *
 
 def kmeans_quantization(img, classes):
 
