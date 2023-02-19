@@ -204,3 +204,13 @@ def resize_to_fixed_d(im, d):
     return cv.resize(im, dim,  interpolation=cv.INTER_AREA)
 
 
+# computes taxel's img dimensions, given width and height of og image,
+# taxel size and step
+def taxels_number(width, height, dim, step):
+
+    rows_n = ((height - dim) // step) + 1
+    columns_n = ((width - dim) // step) + 1
+
+    img_size = rows_n * columns_n
+
+    return img_size
