@@ -1,15 +1,7 @@
-import math
-
-import cv2 as cv
-
 from math import copysign, log10
 
+import cv2 as cv
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-import matplotlib as mpl
-import matplotlib.patches as patches
 from matplotlib import pyplot as plt
 
 from descriptors import DescriptorInterface
