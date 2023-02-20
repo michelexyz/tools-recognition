@@ -34,10 +34,11 @@ w_folder_name = 'working_files'
 w_files_path = parent_folder.joinpath(w_folder_name)
 
 
+# Returns working file absolute path
 def get_file_abs_path(file_name):
     return w_files_path.joinpath(file_name).resolve()
 
-
+# Returns file absolute specifing a folder inside the files directory
 def get_abs_path(folder_name, file_name):
     return parent_folder.joinpath(folder_name, file_name).resolve()
 

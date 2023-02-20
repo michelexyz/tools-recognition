@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import PercentFormatter
 
 from sklearn.metrics import accuracy_score, log_loss, confusion_matrix
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -17,8 +18,8 @@ from matplotlib import pyplot as plt
 
 from IPython.display import display
 
-import pickle
-import dill
+import seaborn as sns
+
 
 from files.files_handler import get_abs_path
 
@@ -92,7 +93,7 @@ class Models:
         # self.mean = None
         # self.le
 
-    def train_and_test(self, n_splits=3, test_size=0.2, random_state=23):
+    def train_and_test(self, n_splits=3, test_size=0.2, random_state=23, cl_ids = [0,1,2,3,4,5,6,7,8]):
         """Makes train and test operation with different partitions.
 
         For each partition it trains and test every classifier
@@ -142,7 +143,7 @@ class Models:
             y_train, y_test = self.labels[train_index], self.labels[test_index]
 
             # train and test with every classifier
-            for clf in self.classifiers:
+            for clf in np.array(self.classifiers)[cl_ids]:
 
                 clf.fit(X_train, y_train)
                 name = clf.__class__.__name__
@@ -151,15 +152,15 @@ class Models:
                 print(name)
 
                 print('****Results****')
-                train_predictions = clf.predict(X_test)
-                acc = accuracy_score(y_test, train_predictions)
+                y_predictions = clf.predict(X_test)
+                acc = accuracy_score(y_test, y_predictions)
                 print("Accuracy: {:.4%}".format(acc))
 
                 # compute log_loss with probabilistic predictions
                 # See: TODO
                 # Warning: significant only with probabilistic classifiers? TODO
-                train_predictions_proba = clf.predict_proba(X_test)
-                ll = log_loss(y_test, train_predictions_proba)
+                y_predictions_proba = clf.predict_proba(X_test)
+                ll = log_loss(y_test, y_predictions_proba)
                 print("Log Loss: {}".format(ll))
 
                 # Ads fold number, classifier name, accuracy and log loss as a new entry of
@@ -169,21 +170,23 @@ class Models:
                 index += 1
 
                 # Shows the confusion matrix of a RandomForestClassifier
-                if name == 'RandomForestClassifier':
-                    conf_matrix = confusion_matrix(y_true=y_test, y_pred=train_predictions)
+                # if name == 'RandomForestClassifier':
+                #     conf_matrix = confusion_matrix(y_true=y_test, y_pred=y_predictions)
+                #
+                #     fig, ax = plt.subplots(figsize=(12, 12))
+                #     ax.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
+                #     ax.set_xticks(np.arange(0, self.category_legend.shape[0]), self.category_legend)
+                #     ax.set_yticks(np.arange(0, self.category_legend.shape[0]), self.category_legend)
+                #
+                #     for i in range(conf_matrix.shape[0]):
+                #         for j in range(conf_matrix.shape[1]):
+                #             ax.text(x=j, y=i, s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
+                #     plt.xlabel('Predictions', fontsize=18)
+                #     plt.ylabel('Actuals', fontsize=18)
+                #     plt.title('Confusion Matrix', fontsize=18)
+                #     plt.show()
 
-                    fig, ax = plt.subplots(figsize=(12, 12))
-                    ax.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
-                    ax.set_xticks(np.arange(0, self.category_legend.shape[0]), self.category_legend)
-                    ax.set_yticks(np.arange(0, self.category_legend.shape[0]), self.category_legend)
-
-                    for i in range(conf_matrix.shape[0]):
-                        for j in range(conf_matrix.shape[1]):
-                            ax.text(x=j, y=i, s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
-                    plt.xlabel('Predictions', fontsize=18)
-                    plt.ylabel('Actuals', fontsize=18)
-                    plt.title('Confusion Matrix', fontsize=18)
-                    plt.show()
+                self.draw_confusion_matrix(y_test,y_predictions,name = name, normalize=None)
 
             print("=" * 30)
 
@@ -279,11 +282,9 @@ class Models:
 
         for i, (train_index, _) in enumerate(sss.split(self.X, self.labels)):
             if i == fold:
-
                 self.train_with_subset(train_index)
 
-
-    def predict_array(self,c_indices, samples):
+    def predict_array(self, c_indices, samples):
         c_indices = np.array(c_indices)
         n_classifiers = c_indices.shape[0]
         n_samples = samples.shape[0]
@@ -292,6 +293,7 @@ class Models:
             predicitions[i] = clf.predict(samples)
 
         return predicitions
+
     # TODO concert X tu np:darray
     def predict(self, c_indices, X):
         l = len(X)
@@ -312,7 +314,6 @@ class Models:
         else:
             raise Exception("'predict' takes only an array of shape(1,) as X,"
                             "shape given: {} ".format(l))
-
 
     def predict_proba(self, c_indices, X):
         l = len(X)
@@ -513,4 +514,35 @@ class Models:
 
         return ids
 
+    def draw_confusion_matrix(self, y_test, y_pred, name, normalize = None):
+        # if name == 'RandomForestClassifier':
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        conf_matrix = confusion_matrix(y_true=y_test, y_pred=y_pred, normalize=normalize)
+
+        # fig, ax = plt.subplots(figsize=(12, 12))
+        # ax.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
+        # ax.set_xticks(np.arange(0, self.category_legend.shape[0]), self.category_legend)
+        # ax.set_yticks(np.arange(0, self.category_legend.shape[0]), self.category_legend)
+
+        # for i in range(conf_matrix.shape[0]):
+        #     for j in range(conf_matrix.shape[1]):
+        #         ax.text(x=j, y=i, s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
+        format = ''
+        if normalize is None:
+            format = '.0f'
+        else:
+            format = '.0%'
+        ax = sns.heatmap(conf_matrix, annot=True,cbar= False, fmt=format, xticklabels=self.category_legend, yticklabels=self.category_legend)
+        cbar = ax.figure.colorbar(ax.collections[0])
+        if not(normalize is None):
+            cbar.ax.yaxis.set_major_formatter(PercentFormatter(1, 0))
+        # cbar.set_ticks([0, 1])
+        # cbar.set_ticklabels(["0%", "100%"])
+        plt.xlabel('Predictions', fontsize=18)
+        plt.ylabel('Actuals', fontsize=18)
+        plt.title(f'Confusion Matrix {name}', fontsize=18)
+        plt.tight_layout()
+
+        plt.show()
 
