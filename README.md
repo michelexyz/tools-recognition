@@ -5,6 +5,8 @@ Since deep learning wasn't included in the syllabus we tried to reach our goal u
 
 ([Prezi presentation](https://prezi.com/view/jpMEWZHmDQvpaqy8RKtE/))<br>
 
+The exam was passed with a grade of 28 on February 21st 2023<br>
+
 *Documentation is still work in progress
 
 
